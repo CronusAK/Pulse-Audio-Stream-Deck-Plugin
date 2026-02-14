@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Device Switch Settings</title>
+  <link rel="stylesheet" href="sdpi.css" />
+</head>
+<body>
+  <div class="sdpi-wrapper">
+    <div class="sdpi-heading">Device</div>
+    <div class="sdpi-item">
+      <div class="sdpi-item-label">Target</div>
+      <div class="sdpi-item-value">
+        <select id="device-select">
+          <option value="" disabled selected>Loading...</option>
+        </select>
+      </div>
+    </div>
+    <div class="sdpi-info">Select the device to set as system default when pressed.</div>
+
+    <div class="sdpi-heading">Encoder Display</div>
+    <div class="sdpi-item">
+      <div class="sdpi-item-label">Options</div>
+      <div class="sdpi-item-value">
+        <input type="checkbox" id="showName" checked />
+        <label for="showName">Show device name</label>
+      </div>
+    </div>
+    <div class="sdpi-item">
+      <div class="sdpi-item-label"></div>
+      <div class="sdpi-item-value">
+        <input type="checkbox" id="showPercent" />
+        <label for="showPercent">Show percentage</label>
+      </div>
+    </div>
+  </div>
+
+  <script src="sdpi-common.js"></script>
+  <script>
+    var isOutput = false;
+
+    initPI(
+      function onReady(ws, ai) {
+        isOutput = (ai.action || "").indexOf("switchoutput") !== -1;
+        var request = isOutput ? "getSinkList" : "getSourceList";
+        ws.send(JSON.stringify({
+          event: "sendToPlugin",
+          action: ai.action,
+          context: uuid,
+          payload: { request: request }
+        }));
+      },
+      function onMessage(msg) {
+        if (msg.event === "sendToPropertyInspector") {
+          var payload = msg.payload || {};
+          if (isOutput && payload.event === "sinkList") populateDeviceList(payload.sinks || []);
+          if (!isOutput && payload.event === "sourceList") populateDeviceList(payload.sources || []);
+        }
+        if (msg.event === "didReceiveSettings") selectCurrentDevice();
+      }
+    );
+
+    function populateDeviceList(devices) {
+      var select = document.getElementById("device-select");
+      select.innerHTML = "";
+
+      if (devices.length === 0) {
+        var opt = document.createElement("option");
+        opt.value = "";
+        opt.textContent = "No devices found";
+        opt.disabled = true;
+        select.appendChild(opt);
+        return;
+      }
+
+      var placeholder = document.createElement("option");
+      placeholder.value = "";
+      placeholder.textContent = "Select a device...";
+      placeholder.disabled = true;
+      select.appendChild(placeholder);
+
+      devices.forEach(function (device) {
+        var opt = document.createElement("option");
+        opt.value = device.nodeName;
+        opt.textContent = device.name;
+        select.appendChild(opt);
+      });
+
+      selectCurrentDevice();
+    }
+
+    function selectCurrentDevice() {
+      var select = document.getElementById("device-select");
+      var key = isOutput ? "outputName" : "inputName";
+      if (settings[key]) select.value = settings[key];
+    }
+
+    function saveSettings() {
+      var key = isOutput ? "outputName" : "inputName";
+      settings[key] = document.getElementById("device-select").value || settings[key];
+      saveDisplaySettings();
+      sendSettings();
+    }
+
+    document.getElementById("device-select").addEventListener("change", saveSettings);
+    document.getElementById("showName").addEventListener("change", saveSettings);
+    document.getElementById("showPercent").addEventListener("change", saveSettings);
+  </script>
+</body>
+</html>

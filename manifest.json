@@ -1,0 +1,489 @@
+{
+  "Name": "PipeWire Audio Control",
+  "Description": "Native PipeWire audio control for Linux — master volume, mic, and per-app control.",
+  "Author": "sfgrimes",
+  "Version": "0.1.10",
+  "Icon": "icons/plugin",
+  "Category": "Audio",
+  "CategoryIcon": "icons/plugin",
+  "CodePathLin": "index.js",
+  "OS": [
+    {
+      "Platform": "linux",
+      "MinimumVersion": "5.0"
+    }
+  ],
+  "Software": {
+    "MinimumVersion": "6.0"
+  },
+  "SDKVersion": 2,
+  "Actions": [
+    {
+      "UUID": "com.sfgrimes.pipewire-audio.volumeup",
+      "Name": "Volume Up",
+      "Icon": "icons/volume-up",
+      "Tooltip": "Increase master volume by 5%",
+      "Controllers": [
+        "Keypad",
+        "Encoder"
+      ],
+      "Encoder": {
+        "layout": "$B1",
+        "TriggerDescription": {
+          "Rotate": "Adjust volume",
+          "Push": "Toggle mute",
+          "Touch": "Toggle mute"
+        }
+      },
+      "PropertyInspectorPath": "propertyInspector/encoderSettings.html",
+      "States": [
+        {
+          "Image": "icons/volume-up",
+          "TitleAlignment": "middle"
+        }
+      ]
+    },
+    {
+      "UUID": "com.sfgrimes.pipewire-audio.volumedown",
+      "Name": "Volume Down",
+      "Icon": "icons/volume-down",
+      "Tooltip": "Decrease master volume by 5%",
+      "Controllers": [
+        "Keypad",
+        "Encoder"
+      ],
+      "Encoder": {
+        "layout": "$B1",
+        "TriggerDescription": {
+          "Rotate": "Adjust volume",
+          "Push": "Toggle mute",
+          "Touch": "Toggle mute"
+        }
+      },
+      "PropertyInspectorPath": "propertyInspector/encoderSettings.html",
+      "States": [
+        {
+          "Image": "icons/volume-down",
+          "TitleAlignment": "middle"
+        }
+      ]
+    },
+    {
+      "UUID": "com.sfgrimes.pipewire-audio.mutetoggle",
+      "Name": "Mute Toggle",
+      "Icon": "icons/mute-toggle",
+      "Tooltip": "Toggle master audio mute",
+      "Controllers": [
+        "Keypad",
+        "Encoder"
+      ],
+      "Encoder": {
+        "layout": "$B1",
+        "TriggerDescription": {
+          "Rotate": "Adjust volume",
+          "Push": "Toggle mute",
+          "Touch": "Toggle mute"
+        }
+      },
+      "PropertyInspectorPath": "propertyInspector/encoderSettings.html",
+      "States": [
+        {
+          "Image": "icons/mute-toggle",
+          "Name": "Unmuted",
+          "TitleAlignment": "middle"
+        },
+        {
+          "Image": "icons/mute-toggle",
+          "Name": "Muted",
+          "TitleAlignment": "middle"
+        }
+      ]
+    },
+    {
+      "UUID": "com.sfgrimes.pipewire-audio.micup",
+      "Name": "Mic Volume Up",
+      "Icon": "icons/mic-up",
+      "Tooltip": "Increase microphone volume by 5%",
+      "Controllers": [
+        "Keypad",
+        "Encoder"
+      ],
+      "Encoder": {
+        "layout": "$B1",
+        "TriggerDescription": {
+          "Rotate": "Adjust mic volume",
+          "Push": "Toggle mic mute",
+          "Touch": "Toggle mic mute"
+        }
+      },
+      "PropertyInspectorPath": "propertyInspector/encoderSettings.html",
+      "States": [
+        {
+          "Image": "icons/mic-up",
+          "TitleAlignment": "middle"
+        }
+      ]
+    },
+    {
+      "UUID": "com.sfgrimes.pipewire-audio.micdown",
+      "Name": "Mic Volume Down",
+      "Icon": "icons/mic-down",
+      "Tooltip": "Decrease microphone volume by 5%",
+      "Controllers": [
+        "Keypad",
+        "Encoder"
+      ],
+      "Encoder": {
+        "layout": "$B1",
+        "TriggerDescription": {
+          "Rotate": "Adjust mic volume",
+          "Push": "Toggle mic mute",
+          "Touch": "Toggle mic mute"
+        }
+      },
+      "PropertyInspectorPath": "propertyInspector/encoderSettings.html",
+      "States": [
+        {
+          "Image": "icons/mic-down",
+          "TitleAlignment": "middle"
+        }
+      ]
+    },
+    {
+      "UUID": "com.sfgrimes.pipewire-audio.micmute",
+      "Name": "Mic Mute Toggle",
+      "Icon": "icons/mic-mute",
+      "Tooltip": "Toggle microphone mute",
+      "Controllers": [
+        "Keypad",
+        "Encoder"
+      ],
+      "Encoder": {
+        "layout": "$B1",
+        "TriggerDescription": {
+          "Rotate": "Adjust mic volume",
+          "Push": "Toggle mic mute",
+          "Touch": "Toggle mic mute"
+        }
+      },
+      "PropertyInspectorPath": "propertyInspector/encoderSettings.html",
+      "States": [
+        {
+          "Image": "icons/mic-mute",
+          "Name": "Unmuted",
+          "TitleAlignment": "middle"
+        },
+        {
+          "Image": "icons/mic-mute",
+          "Name": "Muted",
+          "TitleAlignment": "middle"
+        }
+      ]
+    },
+    {
+      "UUID": "com.sfgrimes.pipewire-audio.appvolumeup",
+      "Name": "App Volume Up",
+      "Icon": "icons/app-volume-up",
+      "Tooltip": "Increase application volume by 5%",
+      "Controllers": [
+        "Keypad",
+        "Encoder"
+      ],
+      "Encoder": {
+        "layout": "$B1",
+        "TriggerDescription": {
+          "Rotate": "Adjust app volume",
+          "Push": "Toggle app mute",
+          "Touch": "Toggle app mute"
+        }
+      },
+      "PropertyInspectorPath": "propertyInspector/appSettings.html",
+      "States": [
+        {
+          "Image": "icons/app-volume-up",
+          "TitleAlignment": "middle"
+        }
+      ]
+    },
+    {
+      "UUID": "com.sfgrimes.pipewire-audio.appvolumedown",
+      "Name": "App Volume Down",
+      "Icon": "icons/app-volume-down",
+      "Tooltip": "Decrease application volume by 5%",
+      "Controllers": [
+        "Keypad",
+        "Encoder"
+      ],
+      "Encoder": {
+        "layout": "$B1",
+        "TriggerDescription": {
+          "Rotate": "Adjust app volume",
+          "Push": "Toggle app mute",
+          "Touch": "Toggle app mute"
+        }
+      },
+      "PropertyInspectorPath": "propertyInspector/appSettings.html",
+      "States": [
+        {
+          "Image": "icons/app-volume-down",
+          "TitleAlignment": "middle"
+        }
+      ]
+    },
+    {
+      "UUID": "com.sfgrimes.pipewire-audio.appmute",
+      "Name": "App Mute Toggle",
+      "Icon": "icons/app-mute",
+      "Tooltip": "Toggle application mute",
+      "Controllers": [
+        "Keypad",
+        "Encoder"
+      ],
+      "Encoder": {
+        "layout": "$B1",
+        "TriggerDescription": {
+          "Rotate": "Adjust app volume",
+          "Push": "Toggle app mute",
+          "Touch": "Toggle app mute"
+        }
+      },
+      "PropertyInspectorPath": "propertyInspector/appSettings.html",
+      "States": [
+        {
+          "Image": "icons/app-mute",
+          "Name": "Unmuted",
+          "TitleAlignment": "middle"
+        },
+        {
+          "Image": "icons/app-mute",
+          "Name": "Muted",
+          "TitleAlignment": "middle"
+        }
+      ]
+    },
+    {
+      "UUID": "com.sfgrimes.pipewire-audio.outputvolumeup",
+      "Name": "Output Volume Up",
+      "Icon": "icons/output-volume-up",
+      "Tooltip": "Increase output device volume by 5%",
+      "Controllers": [
+        "Keypad",
+        "Encoder"
+      ],
+      "Encoder": {
+        "layout": "$B1",
+        "TriggerDescription": {
+          "Rotate": "Adjust output volume",
+          "Push": "Toggle output mute",
+          "Touch": "Toggle output mute"
+        }
+      },
+      "PropertyInspectorPath": "propertyInspector/outputSettings.html",
+      "States": [
+        {
+          "Image": "icons/output-volume-up",
+          "TitleAlignment": "middle"
+        }
+      ]
+    },
+    {
+      "UUID": "com.sfgrimes.pipewire-audio.outputvolumedown",
+      "Name": "Output Volume Down",
+      "Icon": "icons/output-volume-down",
+      "Tooltip": "Decrease output device volume by 5%",
+      "Controllers": [
+        "Keypad",
+        "Encoder"
+      ],
+      "Encoder": {
+        "layout": "$B1",
+        "TriggerDescription": {
+          "Rotate": "Adjust output volume",
+          "Push": "Toggle output mute",
+          "Touch": "Toggle output mute"
+        }
+      },
+      "PropertyInspectorPath": "propertyInspector/outputSettings.html",
+      "States": [
+        {
+          "Image": "icons/output-volume-down",
+          "TitleAlignment": "middle"
+        }
+      ]
+    },
+    {
+      "UUID": "com.sfgrimes.pipewire-audio.outputmute",
+      "Name": "Output Mute Toggle",
+      "Icon": "icons/output-mute",
+      "Tooltip": "Toggle output device mute",
+      "Controllers": [
+        "Keypad",
+        "Encoder"
+      ],
+      "Encoder": {
+        "layout": "$B1",
+        "TriggerDescription": {
+          "Rotate": "Adjust output volume",
+          "Push": "Toggle output mute",
+          "Touch": "Toggle output mute"
+        }
+      },
+      "PropertyInspectorPath": "propertyInspector/outputSettings.html",
+      "States": [
+        {
+          "Image": "icons/output-mute",
+          "Name": "Unmuted",
+          "TitleAlignment": "middle"
+        },
+        {
+          "Image": "icons/output-mute",
+          "Name": "Muted",
+          "TitleAlignment": "middle"
+        }
+      ]
+    },
+    {
+      "UUID": "com.sfgrimes.pipewire-audio.inputvolumeup",
+      "Name": "Input Volume Up",
+      "Icon": "icons/mic-up",
+      "Tooltip": "Increase input device volume",
+      "Controllers": [
+        "Keypad",
+        "Encoder"
+      ],
+      "Encoder": {
+        "layout": "$B1",
+        "TriggerDescription": {
+          "Rotate": "Adjust input volume",
+          "Push": "Toggle input mute",
+          "Touch": "Toggle input mute"
+        }
+      },
+      "PropertyInspectorPath": "propertyInspector/inputSettings.html",
+      "States": [
+        {
+          "Image": "icons/mic-up",
+          "TitleAlignment": "middle"
+        }
+      ]
+    },
+    {
+      "UUID": "com.sfgrimes.pipewire-audio.inputvolumedown",
+      "Name": "Input Volume Down",
+      "Icon": "icons/mic-down",
+      "Tooltip": "Decrease input device volume",
+      "Controllers": [
+        "Keypad",
+        "Encoder"
+      ],
+      "Encoder": {
+        "layout": "$B1",
+        "TriggerDescription": {
+          "Rotate": "Adjust input volume",
+          "Push": "Toggle input mute",
+          "Touch": "Toggle input mute"
+        }
+      },
+      "PropertyInspectorPath": "propertyInspector/inputSettings.html",
+      "States": [
+        {
+          "Image": "icons/mic-down",
+          "TitleAlignment": "middle"
+        }
+      ]
+    },
+    {
+      "UUID": "com.sfgrimes.pipewire-audio.inputmute",
+      "Name": "Input Mute Toggle",
+      "Icon": "icons/mic-mute",
+      "Tooltip": "Toggle input device mute",
+      "Controllers": [
+        "Keypad",
+        "Encoder"
+      ],
+      "Encoder": {
+        "layout": "$B1",
+        "TriggerDescription": {
+          "Rotate": "Adjust input volume",
+          "Push": "Toggle input mute",
+          "Touch": "Toggle input mute"
+        }
+      },
+      "PropertyInspectorPath": "propertyInspector/inputSettings.html",
+      "States": [
+        {
+          "Image": "icons/mic-mute",
+          "Name": "Unmuted",
+          "TitleAlignment": "middle"
+        },
+        {
+          "Image": "icons/mic-mute",
+          "Name": "Muted",
+          "TitleAlignment": "middle"
+        }
+      ]
+    },
+    {
+      "UUID": "com.sfgrimes.pipewire-audio.switchoutput",
+      "Name": "Switch Output Device",
+      "Icon": "icons/output-volume-up",
+      "Tooltip": "Set selected output device as system default",
+      "Controllers": [
+        "Keypad",
+        "Encoder"
+      ],
+      "Encoder": {
+        "layout": "$B1",
+        "TriggerDescription": {
+          "Rotate": "—",
+          "Push": "Set as default",
+          "Touch": "Set as default"
+        }
+      },
+      "PropertyInspectorPath": "propertyInspector/switchSettings.html",
+      "States": [
+        {
+          "Image": "icons/output-volume-up",
+          "Name": "Active",
+          "TitleAlignment": "middle"
+        },
+        {
+          "Image": "icons/output-volume-up",
+          "Name": "Inactive",
+          "TitleAlignment": "middle"
+        }
+      ]
+    },
+    {
+      "UUID": "com.sfgrimes.pipewire-audio.switchinput",
+      "Name": "Switch Input Device",
+      "Icon": "icons/mic-up",
+      "Tooltip": "Set selected input device as system default",
+      "Controllers": [
+        "Keypad",
+        "Encoder"
+      ],
+      "Encoder": {
+        "layout": "$B1",
+        "TriggerDescription": {
+          "Rotate": "—",
+          "Push": "Set as default",
+          "Touch": "Set as default"
+        }
+      },
+      "PropertyInspectorPath": "propertyInspector/switchSettings.html",
+      "States": [
+        {
+          "Image": "icons/mic-up",
+          "Name": "Active",
+          "TitleAlignment": "middle"
+        },
+        {
+          "Image": "icons/mic-up",
+          "Name": "Inactive",
+          "TitleAlignment": "middle"
+        }
+      ]
+    }
+  ]
+}

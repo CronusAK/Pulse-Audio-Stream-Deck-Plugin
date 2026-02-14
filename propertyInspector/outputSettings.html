@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Output Device Settings</title>
+  <link rel="stylesheet" href="sdpi.css" />
+</head>
+<body>
+  <div class="sdpi-wrapper">
+    <div class="sdpi-heading">Output Device</div>
+    <div class="sdpi-item">
+      <div class="sdpi-item-label">Device</div>
+      <div class="sdpi-item-value">
+        <select id="output-select">
+          <option value="" disabled selected>Loading...</option>
+        </select>
+      </div>
+    </div>
+    <div class="sdpi-info">Select the PipeWire output device to control.</div>
+
+    <div class="sdpi-heading">Encoder Display</div>
+    <div class="sdpi-item">
+      <div class="sdpi-item-label">Options</div>
+      <div class="sdpi-item-value">
+        <input type="checkbox" id="showName" checked />
+        <label for="showName">Show device name</label>
+      </div>
+    </div>
+    <div class="sdpi-item">
+      <div class="sdpi-item-label"></div>
+      <div class="sdpi-item-value">
+        <input type="checkbox" id="showPercent" />
+        <label for="showPercent">Show percentage</label>
+      </div>
+    </div>
+
+    <div class="sdpi-heading">Volume Step</div>
+    <div class="sdpi-item">
+      <div class="sdpi-item-label">Step Size</div>
+      <div class="sdpi-item-value">
+        <input type="range" id="volumeStep" min="1" max="20" value="5" />
+        <span id="volumeStepLabel">5%</span>
+      </div>
+    </div>
+  </div>
+
+  <script src="sdpi-common.js"></script>
+  <script>
+    initPI(
+      function onReady(ws, ai) {
+        ws.send(JSON.stringify({
+          event: "sendToPlugin",
+          action: ai.action,
+          context: uuid,
+          payload: { request: "getSinkList" }
+        }));
+      },
+      function onMessage(msg) {
+        if (msg.event === "sendToPropertyInspector") {
+          var payload = msg.payload || {};
+          if (payload.event === "sinkList") populateSinkList(payload.sinks || []);
+        }
+        if (msg.event === "didReceiveSettings") selectCurrentOutput();
+      }
+    );
+
+    function populateSinkList(sinks) {
+      var select = document.getElementById("output-select");
+      select.innerHTML = "";
+
+      if (sinks.length === 0) {
+        var opt = document.createElement("option");
+        opt.value = "";
+        opt.textContent = "No output devices found";
+        opt.disabled = true;
+        select.appendChild(opt);
+        return;
+      }
+
+      var placeholder = document.createElement("option");
+      placeholder.value = "";
+      placeholder.textContent = "Select an output device...";
+      placeholder.disabled = true;
+      select.appendChild(placeholder);
+
+      sinks.forEach(function (sink) {
+        var opt = document.createElement("option");
+        opt.value = sink.nodeName;
+        opt.textContent = sink.name;
+        select.appendChild(opt);
+      });
+
+      // Auto-migrate legacy numeric ID to node.name
+      if (!settings.outputName && settings.output) {
+        for (var i = 0; i < sinks.length; i++) {
+          if (String(sinks[i].id) === String(settings.output)) {
+            settings.outputName = sinks[i].nodeName;
+            sendSettings();
+            break;
+          }
+        }
+      }
+
+      selectCurrentOutput();
+    }
+
+    function selectCurrentOutput() {
+      var select = document.getElementById("output-select");
+      if (settings.outputName) select.value = settings.outputName;
+    }
+
+    function saveSettings() {
+      settings.outputName = document.getElementById("output-select").value || settings.outputName;
+      saveDisplaySettings();
+      saveVolumeStep();
+      sendSettings();
+    }
+
+    document.getElementById("volumeStep").addEventListener("input", function () {
+      document.getElementById("volumeStepLabel").textContent = this.value + "%";
+    });
+
+    document.getElementById("output-select").addEventListener("change", saveSettings);
+    document.getElementById("showName").addEventListener("change", saveSettings);
+    document.getElementById("showPercent").addEventListener("change", saveSettings);
+    document.getElementById("volumeStep").addEventListener("change", saveSettings);
+  </script>
+</body>
+</html>

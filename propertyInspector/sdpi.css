@@ -1,0 +1,114 @@
+:root {
+  --sdpi-bgcolor: #2D2D2D;
+  --sdpi-color: #d8d8d8;
+  --sdpi-bordercolor: #3a3a3a;
+  --sdpi-inputbg: #3D3D3D;
+  --sdpi-inputcolor: #d8d8d8;
+  --sdpi-selectcolor: #d8d8d8;
+  --sdpi-fontweight: 600;
+  --sdpi-letterspacing: -0.25px;
+}
+
+html, body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-size: 9pt;
+  background-color: var(--sdpi-bgcolor);
+  color: var(--sdpi-color);
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+.sdpi-wrapper {
+  overflow: auto;
+  padding: 0 16px;
+}
+
+.sdpi-item {
+  display: flex;
+  flex-direction: row;
+  min-height: 32px;
+  align-items: center;
+  margin-top: 2px;
+}
+
+.sdpi-item-label {
+  flex: 30%;
+  text-align: right;
+  padding-right: 4%;
+  font-weight: var(--sdpi-fontweight);
+  letter-spacing: var(--sdpi-letterspacing);
+  line-height: 22px;
+  user-select: none;
+}
+
+.sdpi-item-value {
+  flex: 70%;
+}
+
+select {
+  width: 100%;
+  padding: 4px 8px;
+  background-color: var(--sdpi-inputbg);
+  color: var(--sdpi-selectcolor);
+  border: 1px solid var(--sdpi-bordercolor);
+  border-radius: 3px;
+  font-size: 9pt;
+  appearance: auto;
+}
+
+select:focus {
+  outline: none;
+  border-color: #5599ff;
+}
+
+.sdpi-heading {
+  font-size: 10pt;
+  font-weight: 700;
+  margin: 8px 0 4px 0;
+  padding: 0 16px;
+}
+
+.sdpi-info {
+  font-size: 8pt;
+  color: #999;
+  padding: 4px 16px;
+}
+
+/* Checkbox styling */
+.sdpi-item-value input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  background-color: var(--sdpi-inputbg);
+  border: 1px solid var(--sdpi-bordercolor);
+  border-radius: 3px;
+  cursor: pointer;
+  vertical-align: middle;
+  margin: 0 6px 0 0;
+  position: relative;
+}
+
+.sdpi-item-value input[type="checkbox"]:checked {
+  background-color: #5599ff;
+  border-color: #5599ff;
+}
+
+.sdpi-item-value input[type="checkbox"]:checked::after {
+  content: "";
+  position: absolute;
+  left: 4px;
+  top: 1px;
+  width: 5px;
+  height: 9px;
+  border: solid #fff;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.sdpi-item-value label {
+  cursor: pointer;
+  user-select: none;
+  vertical-align: middle;
+}
