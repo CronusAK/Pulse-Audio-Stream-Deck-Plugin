@@ -17,7 +17,7 @@ A Stream Deck plugin for controlling PipeWire audio on Linux via [OpenDeck](http
 ## Requirements
 
 - Linux with [PipeWire](https://pipewire.org/) and [WirePlumber](https://pipewire.pages.freedesktop.org/wireplumber/)
-- [OpenDeck](https://github.com/ninjadev64/OpenDeck) >= 6.0
+- [OpenDeck](https://github.com/ninjadev64/OpenDeck) >= 2.0
 - Node.js
 - System tools: `wpctl`, `pactl`, `pw-dump`
 
