@@ -52,44 +52,55 @@ All actions support both keypad (button) and encoder (dial) controllers. The vol
 
 Virtual sinks are useful for routing audio from specific applications to different outputs. For example, you can send game audio to your headphones and music to your speakers, then control each independently with the Output Volume actions.
 
-### Create a virtual sink
+### Create the sink script
 
-Add the following to `~/.config/pipewire/pipewire.conf.d/virtual-sinks.conf` (create the directory if it does not exist):
-
-```
-context.objects = [
-    {
-        factory = adapter
-        args = {
-            factory.name = support.null-audio-sink
-            node.name = "virtual-music"
-            node.description = "Music"
-            media.class = "Audio/Sink"
-            audio.position = [ FL FR ]
-        }
-    }
-    {
-        factory = adapter
-        args = {
-            factory.name = support.null-audio-sink
-            node.name = "virtual-games"
-            node.description = "Games"
-            media.class = "Audio/Sink"
-            audio.position = [ FL FR ]
-        }
-    }
-]
-```
-
-Each block creates one virtual sink. Adjust the `node.name` (internal identifier) and `node.description` (display name) as needed. Add or remove blocks for as many sinks as you want.
-
-### Apply changes
-
-Restart PipeWire to load the new configuration:
+Create `~/.config/pipewire/systemd/sinks.sh` (and the directory if it does not exist):
 
 ```bash
-systemctl --user restart pipewire pipewire-pulse wireplumber
+#!/usr/bin/env bash
+
+sinks=("Chat" "Browser" "Game" "Media" "System")
+
+for sink in "${sinks[@]}"; do
+    pactl load-module module-null-sink \
+        sink_name="$sink" \
+        sink_properties="device.description=$sink"
+done
 ```
+
+Edit the `sinks` array to add, remove, or rename sinks as needed. Make the script executable:
+
+```bash
+chmod +x ~/.config/pipewire/systemd/sinks.sh
+```
+
+### Create a systemd user service
+
+Create `~/.config/systemd/user/pipewire-sinks.service`:
+
+```ini
+[Unit]
+Description=Create custom PipeWire null sinks
+After=pipewire.service wireplumber.service
+Requires=pipewire.service
+
+[Service]
+Type=oneshot
+ExecStart=%h/.config/pipewire/systemd/sinks.sh
+RemainAfterExit=true
+
+[Install]
+WantedBy=default.target
+```
+
+### Enable and start the service
+
+```bash
+systemctl --user daemon-reload
+systemctl --user enable --now pipewire-sinks.service
+```
+
+The sinks will now be created automatically on login.
 
 ### Verify the sinks exist
 
@@ -100,7 +111,7 @@ wpctl status
 The virtual sinks should appear under "Audio > Sinks". You can also confirm with:
 
 ```bash
-pw-dump | grep -A2 '"node.name"' | grep virtual
+pactl list sinks short
 ```
 
 ### Route applications to virtual sinks
