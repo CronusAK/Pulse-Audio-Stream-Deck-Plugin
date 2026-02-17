@@ -255,18 +255,43 @@ function updateDisplay(ctx, data) {
 
 // --- Refresh display for a context ---
 function refreshTitle(ctx) {
-  // For app actions, use the app node id from settings
+  // For app actions, resolve by stable application.name
   if (ctx.short.startsWith("app")) {
-    const appId = ctx.settings && ctx.settings.app;
-    if (!appId) {
+    const appName = ctx.settings && ctx.settings.appName;
+    const legacyId = ctx.settings && ctx.settings.app;
+
+    if (!appName && !legacyId) {
       ctx.nodeName = "No App";
+      ctx.resolvedAppIds = [];
       updateDisplay(ctx, null);
       return;
     }
-    pipewire.getAppName(appId, (name) => {
-      ctx.nodeName = name || `ID ${appId}`;
-      pipewire.getVolume(appId, (data) => updateDisplay(ctx, data));
-    });
+
+    if (appName) {
+      pipewire.resolveAppIds(appName, (ids) => {
+        ctx.resolvedAppIds = ids;
+        if (ids.length === 0) {
+          ctx.nodeName = appName;
+          updateDisplay(ctx, null);
+          return;
+        }
+        pipewire.getAppName(ids[0], (name) => {
+          ctx.nodeName = name || appName;
+          pipewire.getVolume(ids[0], (data) => updateDisplay(ctx, data));
+        });
+      });
+    } else {
+      // Legacy: use numeric ID directly, auto-migrate to appName
+      ctx.resolvedAppIds = [legacyId];
+      pipewire.inspectNode(legacyId, (info) => {
+        if (info && info.appName) {
+          ctx.settings.appName = info.appName;
+          send({ event: "setSettings", context: ctx.context, payload: ctx.settings });
+        }
+        ctx.nodeName = (info && info.appName) || `ID ${legacyId}`;
+        pipewire.getVolume(legacyId, (data) => updateDisplay(ctx, data));
+      });
+    }
     return;
   }
 
@@ -417,7 +442,7 @@ function pushAppListToOpenPIs() {
 function resolveTarget(short, ctx, settings) {
   if (short.startsWith("volume") || short === "mutetoggle") return "@DEFAULT_AUDIO_SINK@";
   if (short.startsWith("mic") || short === "micmute") return "@DEFAULT_AUDIO_SOURCE@";
-  if (short.startsWith("app")) return settings && settings.app;
+  if (short.startsWith("app")) return (ctx && ctx.resolvedAppIds && ctx.resolvedAppIds.length > 0) ? ctx.resolvedAppIds : (settings && settings.app ? [settings.app] : []);
   if (short.startsWith("output")) return (ctx && ctx.resolvedOutputId) || (settings && settings.output);
   if (short.startsWith("input")) return (ctx && ctx.resolvedInputId) || (settings && settings.input);
   if (short === "switchoutput" || short === "switchinput") return ctx && ctx.resolvedSwitchId;
@@ -431,6 +456,18 @@ function getSettings(context, payload) {
     : (payload && payload.settings) || {};
 }
 
+// --- Helper: apply action to each ID in a target array ---
+function forEachTarget(ids, fn, afterAll) {
+  if (!Array.isArray(ids) || ids.length === 0) return;
+  let remaining = ids.length;
+  ids.forEach((id) => {
+    fn(id, () => {
+      remaining--;
+      if (remaining === 0 && afterAll) afterAll();
+    });
+  });
+}
+
 // --- Key action dispatch ---
 function handleKeyDown(action, context, settings) {
   const ctx = contexts.get(context);
@@ -438,6 +475,7 @@ function handleKeyDown(action, context, settings) {
   const target = resolveTarget(short, ctx, settings);
   const cb = () => afterAction(context);
   const step = (settings && settings.volumeStep) || 5;
+  const isApp = short.startsWith("app");
 
   switch (short) {
     case "volumeup":
@@ -445,21 +483,33 @@ function handleKeyDown(action, context, settings) {
     case "appvolumeup":
     case "outputvolumeup":
     case "inputvolumeup":
-      pipewire.nodeVolume(target, `+${step}%`, cb);
+      if (isApp) {
+        forEachTarget(target, (id, done) => pipewire.nodeVolume(id, `+${step}%`, done), cb);
+      } else {
+        pipewire.nodeVolume(target, `+${step}%`, cb);
+      }
       break;
     case "volumedown":
     case "micdown":
     case "appvolumedown":
     case "outputvolumedown":
     case "inputvolumedown":
-      pipewire.nodeVolume(target, `-${step}%`, cb);
+      if (isApp) {
+        forEachTarget(target, (id, done) => pipewire.nodeVolume(id, `-${step}%`, done), cb);
+      } else {
+        pipewire.nodeVolume(target, `-${step}%`, cb);
+      }
       break;
     case "mutetoggle":
     case "micmute":
     case "appmute":
     case "outputmute":
     case "inputmute":
-      pipewire.nodeMute(target, cb);
+      if (isApp) {
+        forEachTarget(target, (id, done) => pipewire.nodeMute(id, done), cb);
+      } else {
+        pipewire.nodeMute(target, cb);
+      }
       break;
     case "switchoutput":
     case "switchinput":
@@ -478,17 +528,25 @@ function handleDialRotate(action, context, settings, ticks) {
   const stepBase = (settings && settings.volumeStep) || 5;
   const step = Math.abs(ticks) * stepBase;
   const change = `${ticks > 0 ? "+" : "-"}${step}%`;
-  pipewire.nodeVolume(target, change, () => afterAction(context));
+  const cb = () => afterAction(context);
+  if (short.startsWith("app")) {
+    forEachTarget(target, (id, done) => pipewire.nodeVolume(id, change, done), cb);
+  } else {
+    pipewire.nodeVolume(target, change, cb);
+  }
 }
 
 function handleDialPress(action, context, settings) {
   const ctx = contexts.get(context);
   const short = ctx ? ctx.short : action.replace(PREFIX, "");
   const target = resolveTarget(short, ctx, settings);
+  const cb = () => afterAction(context);
   if (short === "switchoutput" || short === "switchinput") {
-    pipewire.setDefault(target, () => afterAction(context));
+    pipewire.setDefault(target, cb);
+  } else if (short.startsWith("app")) {
+    forEachTarget(target, (id, done) => pipewire.nodeMute(id, done), cb);
   } else {
-    pipewire.nodeMute(target, () => afterAction(context));
+    pipewire.nodeMute(target, cb);
   }
 }
 

@@ -64,6 +64,7 @@ function parsePwDump(callback) {
           apps.push({
             id: node.id,
             name: props["application.name"] || props["node.name"] || `Node ${node.id}`,
+            appName: props["application.name"] || null,
           });
         } else if (mediaClass === "Audio/Sink") {
           sinks.push({
@@ -110,6 +111,14 @@ function resolveNodeId(nodeName, callback) {
   parsePwDump((apps, sinks) => {
     const match = sinks.find((s) => s.nodeName === nodeName);
     callback(match ? match.id : null);
+  });
+}
+
+// Resolve a stable application.name to all current matching node IDs (for app streams)
+function resolveAppIds(appName, callback) {
+  parsePwDump((apps) => {
+    const ids = apps.filter((a) => a.appName === appName).map((a) => a.id);
+    callback(ids);
   });
 }
 
@@ -168,6 +177,7 @@ module.exports = {
   getAppName,
   resolveNodeId,
   resolveSourceId,
+  resolveAppIds,
   setDefault,
   nodeVolume,
   nodeMute,
