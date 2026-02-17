@@ -37,7 +37,7 @@ cp index.js pipewire.js manifest.json package.json package-lock.json "$STAGE_DIR
 
 # Build the zip with the .sdPlugin directory as the top-level entry
 rm -f "$OUTPUT"
-zip -r "$OUTPUT" "$STAGE_DIR"
+mkdir -p builds ; zip -r "$OUTPUT" "$STAGE_DIR"
 
 # Clean up staging directory
 rm -rf "$STAGE_DIR"
