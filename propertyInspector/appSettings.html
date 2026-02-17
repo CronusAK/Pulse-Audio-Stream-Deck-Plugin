@@ -64,11 +64,24 @@
       }
     );
 
+    var cachedApps = [];
+
     function populateAppList(apps) {
+      cachedApps = apps;
       var select = document.getElementById("app-select");
       select.innerHTML = "";
 
-      if (apps.length === 0) {
+      // Deduplicate by appName
+      var seen = {};
+      var unique = [];
+      apps.forEach(function (app) {
+        if (app.appName && !seen[app.appName]) {
+          seen[app.appName] = true;
+          unique.push(app);
+        }
+      });
+
+      if (unique.length === 0) {
         var opt = document.createElement("option");
         opt.value = "";
         opt.textContent = "No audio streams found";
@@ -83,23 +96,32 @@
       placeholder.disabled = true;
       select.appendChild(placeholder);
 
-      apps.forEach(function (app) {
+      unique.forEach(function (app) {
         var opt = document.createElement("option");
-        opt.value = String(app.id);
-        opt.textContent = app.name + " (ID: " + app.id + ")";
+        opt.value = app.appName;
+        opt.textContent = app.name;
         select.appendChild(opt);
       });
+
+      // Auto-migrate from legacy numeric ID
+      if (!settings.appName && settings.app) {
+        var match = apps.find(function (a) { return String(a.id) === String(settings.app); });
+        if (match && match.appName) {
+          settings.appName = match.appName;
+          sendSettings();
+        }
+      }
 
       selectCurrentApp();
     }
 
     function selectCurrentApp() {
       var select = document.getElementById("app-select");
-      if (settings.app) select.value = String(settings.app);
+      if (settings.appName) select.value = settings.appName;
     }
 
     function saveSettings() {
-      settings.app = document.getElementById("app-select").value || settings.app;
+      settings.appName = document.getElementById("app-select").value || settings.appName;
       saveDisplaySettings();
       saveVolumeStep();
       sendSettings();
