@@ -167,6 +167,7 @@ function buildPercentText(percent, yCenter, large, L) {
 function renderSVG(title, muted, percent, options, L) {
   const showName = options && options.showName !== undefined ? options.showName : true;
   const showPercent = options && options.showPercent !== undefined ? options.showPercent : false;
+  const showBar = options && options.showBar !== undefined ? options.showBar : true;
   const iconType = options && options.iconType || null;
 
   const fillW = Math.round((percent / 100) * L.barW);
@@ -187,22 +188,87 @@ function renderSVG(title, muted, percent, options, L) {
     textBlock = buildPercentText(percent, L.singleY, true, L);
   }
 
+  const barBlock = showBar
+    ? `<rect x="${L.barX}" y="${L.barY}" width="${L.barW}" height="10" rx="5" fill="#333"/>
+<rect x="${L.barX}" y="${L.barY}" width="${fillW}" height="10" rx="5" fill="${barColor}"/>`
+    : "";
+
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${L.w}" height="${L.h}">
 <rect width="${L.w}" height="${L.h}" fill="#000"/>
 ${bgIcon}
 ${textBlock}
 ${muteIcon}
-<rect x="${L.barX}" y="${L.barY}" width="${L.barW}" height="10" rx="5" fill="#333"/>
-<rect x="${L.barX}" y="${L.barY}" width="${fillW}" height="10" rx="5" fill="${barColor}"/>
+${barBlock}
+</svg>`;
+}
+
+function renderKeypadSVG(muted, percent, options) {
+  const W = 144, H = 144, CX = 72;
+  const barX = 12, barW = 120, barH = 6, barY = 110;
+  const fillW = Math.round((percent / 100) * barW);
+  const barColor = muted ? "#666" : "#f7821b";
+  const hint = options && options.actionHint;
+  const showBar = options && options.showBar !== undefined ? options.showBar : true;
+  const showPercent = options && options.showPercent !== undefined ? options.showPercent : false;
+
+  // Action-specific center icon
+  let icon = "";
+  if (hint === "up") {
+    icon = `<polyline points="40,82 72,44 104,82" fill="none" stroke="#4caf50" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>`;
+  } else if (hint === "down") {
+    icon = `<polyline points="40,44 72,82 104,44" fill="none" stroke="#f44336" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>`;
+  } else if (hint === "mute") {
+    const iconType = options && options.iconType;
+    if (iconType === "microphone" || iconType === "input") {
+      icon = `<g transform="translate(36,36) scale(3.0)" opacity="0.85">
+<path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z" fill="#fff"/>
+<path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z" fill="#fff"/>
+</g>`;
+    } else {
+      icon = `<g transform="translate(30,38) scale(3.5)" opacity="0.85">
+<path d="M3 9v6h4l5 5V4L7 9H3z" fill="#fff"/>
+<path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z" fill="#fff"/>
+<path d="M19 12c0 2.87-1.65 5.36-4 6.58v2.16c3.44-1.35 6-4.73 6-8.74s-2.56-7.39-6-8.74v2.16c2.35 1.22 4 3.71 4 6.58z" fill="#fff"/>
+</g>`;
+    }
+    if (muted) {
+      icon += `<line x1="32" y1="32" x2="112" y2="100" stroke="#e33" stroke-width="5" stroke-linecap="round"/>`;
+    }
+  }
+
+  // Volume bar (conditional)
+  const bar = showBar
+    ? `<rect x="${barX}" y="${barY}" width="${barW}" height="${barH}" rx="3" fill="#333"/>
+<rect x="${barX}" y="${barY}" width="${fillW}" height="${barH}" rx="3" fill="${barColor}"/>`
+    : "";
+
+  // Percentage below bar (conditional)
+  const pctText = showPercent
+    ? `<text x="${CX}" y="132" text-anchor="middle" fill="#fff" font-size="16" font-family="sans-serif" font-weight="bold">${percent}%</text>`
+    : "";
+
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}">
+<rect width="${W}" height="${H}" fill="#000"/>
+${icon}
+${bar}
+${pctText}
 </svg>`;
 }
 
 function setImage(context, title, muted, percent, options, controller) {
   const pct = percent != null ? percent : 0;
-  const L = LAYOUTS[controller] || LAYOUTS.Keypad;
-  const svg = renderSVG(title, !!muted, pct, options, L);
+  let svg;
+  if (controller === "Keypad" && options && options.actionHint) {
+    svg = renderKeypadSVG(!!muted, pct, options);
+  } else {
+    const L = LAYOUTS[controller] || LAYOUTS.Keypad;
+    svg = renderSVG(title, !!muted, pct, options, L);
+  }
   const b64 = Buffer.from(svg).toString("base64");
-  if (controller === "Keypad") setTitle(context, "");
+  if (controller === "Keypad") {
+    const showName = options && options.showName !== undefined ? options.showName : true;
+    setTitle(context, showName ? title : "");
+  }
   send({
     event: "setImage",
     context,
@@ -224,15 +290,21 @@ function getTargetForAction(short) {
 function displayOpts(ctx) {
   const showName = ctx.settings && ctx.settings.showName !== undefined ? ctx.settings.showName : true;
   const showPercent = ctx.settings && ctx.settings.showPercent !== undefined ? ctx.settings.showPercent : false;
-  const opts = { showName, showPercent, iconType: ctx.iconType };
+  const showBar = ctx.settings && ctx.settings.showBar !== undefined ? ctx.settings.showBar : true;
+  const opts = { showName, showPercent, showBar, iconType: ctx.iconType };
   if (ctx.short === "switchoutput" || ctx.short === "switchinput") {
     opts.barColor = ctx.isActive ? "#4caf50" : "#666";
   }
+  let actionHint = null;
+  if (ctx.short.endsWith("up")) actionHint = "up";
+  else if (ctx.short.endsWith("down")) actionHint = "down";
+  else if (ctx.short.includes("mute")) actionHint = "mute";
+  opts.actionHint = actionHint;
   return opts;
 }
 
 function updateDisplay(ctx, data) {
-  const title = ctx.nodeName || "...";
+  const title = (ctx.settings && ctx.settings.customName) || ctx.nodeName || "...";
   const opts = displayOpts(ctx);
 
   // Switch actions: show active state via bar
