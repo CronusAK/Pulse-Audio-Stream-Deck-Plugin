@@ -7,12 +7,25 @@
 </head>
 <body>
   <div class="sdpi-wrapper">
-    <div class="sdpi-heading">Encoder Display</div>
+    <div class="sdpi-heading">Display</div>
+    <div class="sdpi-item">
+      <div class="sdpi-item-label">Custom Name</div>
+      <div class="sdpi-item-value">
+        <input type="text" id="customName" placeholder="Leave blank for auto-detect" />
+      </div>
+    </div>
     <div class="sdpi-item">
       <div class="sdpi-item-label">Options</div>
       <div class="sdpi-item-value">
         <input type="checkbox" id="showName" checked />
         <label for="showName">Show device name</label>
+      </div>
+    </div>
+    <div class="sdpi-item">
+      <div class="sdpi-item-label"></div>
+      <div class="sdpi-item-value">
+        <input type="checkbox" id="showBar" checked />
+        <label for="showBar">Show volume bar</label>
       </div>
     </div>
     <div class="sdpi-item">
@@ -47,7 +60,9 @@
       document.getElementById("volumeStepLabel").textContent = this.value + "%";
     });
 
+    document.getElementById("customName").addEventListener("change", saveSettings);
     document.getElementById("showName").addEventListener("change", saveSettings);
+    document.getElementById("showBar").addEventListener("change", saveSettings);
     document.getElementById("showPercent").addEventListener("change", saveSettings);
     document.getElementById("volumeStep").addEventListener("change", saveSettings);
   </script>

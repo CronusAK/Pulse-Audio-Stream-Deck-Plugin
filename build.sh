@@ -3,7 +3,6 @@ set -euo pipefail
 
 PLUGIN_NAME="com.sfgrimes.pipewire-audio"
 STAGE_DIR="${PLUGIN_NAME}.sdPlugin"
-OUTPUT="builds/${PLUGIN_NAME}.streamDeckPlugin"
 
 cd "$(dirname "$0")"
 
@@ -20,6 +19,7 @@ NEW_VERSION=$(node -e "
   fs.writeFileSync('package.json', JSON.stringify(p, null, 2) + '\n');
   process.stdout.write(v);
 ")
+OUTPUT="builds/${PLUGIN_NAME}-${NEW_VERSION}.streamDeckPlugin"
 echo "Version: $NEW_VERSION"
 
 echo "Installing dependencies..."

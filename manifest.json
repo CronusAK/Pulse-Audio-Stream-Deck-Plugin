@@ -2,7 +2,7 @@
   "Name": "PipeWire Audio Control",
   "Description": "Native PipeWire audio control for Linux — master volume, mic, and per-app control.",
   "Author": "sfgrimes",
-  "Version": "0.1.12",
+  "Version": "0.2.1",
   "Icon": "icons/plugin",
   "Category": "Audio",
   "CategoryIcon": "icons/plugin",
@@ -39,7 +39,7 @@
       "States": [
         {
           "Image": "icons/volume-up",
-          "TitleAlignment": "middle"
+          "TitleAlignment": "top"
         }
       ]
     },
@@ -64,7 +64,7 @@
       "States": [
         {
           "Image": "icons/volume-down",
-          "TitleAlignment": "middle"
+          "TitleAlignment": "top"
         }
       ]
     },
@@ -90,12 +90,12 @@
         {
           "Image": "icons/mute-toggle",
           "Name": "Unmuted",
-          "TitleAlignment": "middle"
+          "TitleAlignment": "top"
         },
         {
           "Image": "icons/mute-toggle",
           "Name": "Muted",
-          "TitleAlignment": "middle"
+          "TitleAlignment": "top"
         }
       ]
     },
@@ -120,7 +120,7 @@
       "States": [
         {
           "Image": "icons/mic-up",
-          "TitleAlignment": "middle"
+          "TitleAlignment": "top"
         }
       ]
     },
@@ -145,7 +145,7 @@
       "States": [
         {
           "Image": "icons/mic-down",
-          "TitleAlignment": "middle"
+          "TitleAlignment": "top"
         }
       ]
     },
@@ -171,12 +171,12 @@
         {
           "Image": "icons/mic-mute",
           "Name": "Unmuted",
-          "TitleAlignment": "middle"
+          "TitleAlignment": "top"
         },
         {
           "Image": "icons/mic-mute",
           "Name": "Muted",
-          "TitleAlignment": "middle"
+          "TitleAlignment": "top"
         }
       ]
     },
@@ -201,7 +201,7 @@
       "States": [
         {
           "Image": "icons/app-volume-up",
-          "TitleAlignment": "middle"
+          "TitleAlignment": "top"
         }
       ]
     },
@@ -226,7 +226,7 @@
       "States": [
         {
           "Image": "icons/app-volume-down",
-          "TitleAlignment": "middle"
+          "TitleAlignment": "top"
         }
       ]
     },
@@ -252,12 +252,12 @@
         {
           "Image": "icons/app-mute",
           "Name": "Unmuted",
-          "TitleAlignment": "middle"
+          "TitleAlignment": "top"
         },
         {
           "Image": "icons/app-mute",
           "Name": "Muted",
-          "TitleAlignment": "middle"
+          "TitleAlignment": "top"
         }
       ]
     },
@@ -282,7 +282,7 @@
       "States": [
         {
           "Image": "icons/output-volume-up",
-          "TitleAlignment": "middle"
+          "TitleAlignment": "top"
         }
       ]
     },
@@ -307,7 +307,7 @@
       "States": [
         {
           "Image": "icons/output-volume-down",
-          "TitleAlignment": "middle"
+          "TitleAlignment": "top"
         }
       ]
     },
@@ -333,12 +333,12 @@
         {
           "Image": "icons/output-mute",
           "Name": "Unmuted",
-          "TitleAlignment": "middle"
+          "TitleAlignment": "top"
         },
         {
           "Image": "icons/output-mute",
           "Name": "Muted",
-          "TitleAlignment": "middle"
+          "TitleAlignment": "top"
         }
       ]
     },
@@ -363,7 +363,7 @@
       "States": [
         {
           "Image": "icons/mic-up",
-          "TitleAlignment": "middle"
+          "TitleAlignment": "top"
         }
       ]
     },
@@ -388,7 +388,7 @@
       "States": [
         {
           "Image": "icons/mic-down",
-          "TitleAlignment": "middle"
+          "TitleAlignment": "top"
         }
       ]
     },
@@ -414,12 +414,12 @@
         {
           "Image": "icons/mic-mute",
           "Name": "Unmuted",
-          "TitleAlignment": "middle"
+          "TitleAlignment": "top"
         },
         {
           "Image": "icons/mic-mute",
           "Name": "Muted",
-          "TitleAlignment": "middle"
+          "TitleAlignment": "top"
         }
       ]
     },
@@ -445,12 +445,12 @@
         {
           "Image": "icons/output-volume-up",
           "Name": "Active",
-          "TitleAlignment": "middle"
+          "TitleAlignment": "top"
         },
         {
           "Image": "icons/output-volume-up",
           "Name": "Inactive",
-          "TitleAlignment": "middle"
+          "TitleAlignment": "top"
         }
       ]
     },
@@ -476,12 +476,12 @@
         {
           "Image": "icons/mic-up",
           "Name": "Active",
-          "TitleAlignment": "middle"
+          "TitleAlignment": "top"
         },
         {
           "Image": "icons/mic-up",
           "Name": "Inactive",
-          "TitleAlignment": "middle"
+          "TitleAlignment": "top"
         }
       ]
     }

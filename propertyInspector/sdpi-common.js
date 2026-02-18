@@ -54,14 +54,21 @@ function initPI(onReady, onMessage) {
 
 function loadDisplaySettings() {
   var showNameEl = document.getElementById("showName");
+  var showBarEl = document.getElementById("showBar");
   var showPercentEl = document.getElementById("showPercent");
+  var customNameEl = document.getElementById("customName");
   if (showNameEl) showNameEl.checked = settings.showName !== false;
+  if (showBarEl) showBarEl.checked = settings.showBar !== false;
   if (showPercentEl) showPercentEl.checked = settings.showPercent === true;
+  if (customNameEl) customNameEl.value = settings.customName || "";
 }
 
 function saveDisplaySettings() {
   settings.showName = document.getElementById("showName").checked;
+  settings.showBar = document.getElementById("showBar").checked;
   settings.showPercent = document.getElementById("showPercent").checked;
+  var customNameEl = document.getElementById("customName");
+  if (customNameEl) settings.customName = customNameEl.value;
 }
 
 function loadVolumeStep() {

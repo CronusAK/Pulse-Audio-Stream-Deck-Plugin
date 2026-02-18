@@ -1,6 +1,6 @@
 {
   "name": "com.sfgrimes.pipewire-audio",
-  "version": "0.1.12",
+  "version": "0.2.1",
   "description": "PipeWire Native Audio Control Plugin for OpenDeck",
   "main": "index.js",
   "author": "sfgrimes",
