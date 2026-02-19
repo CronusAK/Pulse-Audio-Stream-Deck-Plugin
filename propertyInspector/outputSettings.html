@@ -47,6 +47,18 @@
       </div>
     </div>
 
+    <div class="sdpi-heading">Button Action</div>
+    <div class="sdpi-item">
+      <div class="sdpi-item-label">Direction</div>
+      <div class="sdpi-item-value">
+        <select id="direction">
+          <option value="up">Up (increase)</option>
+          <option value="down">Down (decrease)</option>
+          <option value="mute">Mute Toggle</option>
+        </select>
+      </div>
+    </div>
+
     <div class="sdpi-heading">Volume Step</div>
     <div class="sdpi-item">
       <div class="sdpi-item-label">Step Size</div>
@@ -124,6 +136,7 @@
 
     function saveSettings() {
       settings.outputName = document.getElementById("output-select").value || settings.outputName;
+      settings.direction = document.getElementById("direction").value;
       saveDisplaySettings();
       saveVolumeStep();
       sendSettings();
@@ -133,6 +146,9 @@
       document.getElementById("volumeStepLabel").textContent = this.value + "%";
     });
 
+    if (settings.direction) document.getElementById("direction").value = settings.direction;
+
+    document.getElementById("direction").addEventListener("change", saveSettings);
     document.getElementById("output-select").addEventListener("change", saveSettings);
     document.getElementById("customName").addEventListener("change", saveSettings);
     document.getElementById("showName").addEventListener("change", saveSettings);

@@ -42,6 +42,12 @@ function nodeMute(id, callback) {
   run(`wpctl set-mute ${id} toggle`, callback);
 }
 
+// Set mute to a specific state (true = muted, false = unmuted)
+function nodeMuteSet(id, muted, callback) {
+  if (!id) return;
+  run(`wpctl set-mute ${id} ${muted ? 1 : 0}`, callback);
+}
+
 // --- pw-dump based enumeration ---
 
 // Shared helper: parse pw-dump once, extract app streams, sinks, and sources
@@ -181,6 +187,7 @@ module.exports = {
   setDefault,
   nodeVolume,
   nodeMute,
+  nodeMuteSet,
   getAppList,
   getSinkList,
   getSourceList,
