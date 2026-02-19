@@ -16,7 +16,7 @@ html, body {
   color: var(--sdpi-color);
   margin: 0;
   padding: 0;
-  overflow: hidden;
+  overflow-y: auto;
 }
 
 .sdpi-wrapper {

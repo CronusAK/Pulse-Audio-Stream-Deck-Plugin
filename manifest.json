@@ -2,7 +2,7 @@
   "Name": "PipeWire Audio Control",
   "Description": "Native PipeWire audio control for Linux — master volume, mic, and per-app control.",
   "Author": "sfgrimes",
-  "Version": "0.2.4",
+  "Version": "0.3.0",
   "Icon": "icons/plugin",
   "Category": "Audio",
   "CategoryIcon": "icons/plugin",
