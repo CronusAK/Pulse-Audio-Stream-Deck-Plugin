@@ -34,6 +34,7 @@ function actionMeta(action) {
   else if (short.startsWith("app")) iconType = "app";
   else if (short.startsWith("output") || short === "switchoutput") iconType = "output";
   else if (short.startsWith("input") || short === "switchinput") iconType = "input";
+  else if (short === "pushtotalk") iconType = "microphone";
   return { short, iconType };
 }
 
@@ -255,6 +256,32 @@ ${pctText}
 </svg>`;
 }
 
+// --- Push-to-talk SVG rendering (Keypad only) ---
+function renderPTTSvg(active) {
+  const bgDark  = active ? "#1b5e20" : "#b71c1c";
+  const bgLight = active ? "#388e3c" : "#c62828";
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="144" height="144">
+<rect width="144" height="144" fill="#000"/>
+<circle cx="72" cy="72" r="62" fill="${bgDark}"/>
+<circle cx="72" cy="72" r="56" fill="${bgLight}"/>
+<g transform="translate(36,38) scale(3.0)">
+<path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z" fill="#fff"/>
+<path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z" fill="#fff"/>
+</g>
+</svg>`;
+}
+
+function setPTTImage(ctx, active) {
+  const svg = renderPTTSvg(active);
+  const b64 = Buffer.from(svg).toString("base64");
+  setTitle(ctx.context, "");
+  send({
+    event: "setImage",
+    context: ctx.context,
+    payload: { image: `data:image/svg+xml;base64,${b64}`, target: 0 },
+  });
+}
+
 function setImage(context, title, muted, percent, options, controller) {
   const pct = percent != null ? percent : 0;
   let svg;
@@ -287,6 +314,8 @@ function getTargetForAction(short) {
   return null;
 }
 
+const COMBINED_VOL = ["volume", "micvolume", "appvolume", "outputvolume", "inputvolume"];
+
 function displayOpts(ctx) {
   const showName = ctx.settings && ctx.settings.showName !== undefined ? ctx.settings.showName : true;
   const showPercent = ctx.settings && ctx.settings.showPercent !== undefined ? ctx.settings.showPercent : false;
@@ -296,9 +325,16 @@ function displayOpts(ctx) {
     opts.barColor = ctx.isActive ? "#4caf50" : "#666";
   }
   let actionHint = null;
-  if (ctx.short.endsWith("up")) actionHint = "up";
-  else if (ctx.short.endsWith("down")) actionHint = "down";
-  else if (ctx.short.includes("mute")) actionHint = "mute";
+  if (COMBINED_VOL.includes(ctx.short)) {
+    const dir = ctx.settings && ctx.settings.direction;
+    actionHint = dir === "mute" ? "mute" : (dir === "down" ? "down" : "up");
+  } else if (ctx.short.endsWith("up")) {
+    actionHint = "up";
+  } else if (ctx.short.endsWith("down")) {
+    actionHint = "down";
+  } else if (ctx.short.includes("mute")) {
+    actionHint = "mute";
+  }
   opts.actionHint = actionHint;
   return opts;
 }
@@ -317,9 +353,10 @@ function updateDisplay(ctx, data) {
 
   setImage(ctx.context, title, data ? data.muted : false, data ? data.percent : 0, opts, ctx.controller);
 
-  // State for mute toggle actions (works for both Keypad and Encoder)
+  // State for mute mode: track muted/unmuted so OpenDeck shows the right icon
   if (data) {
-    if (ctx.short === "mutetoggle" || ctx.short === "micmute" || ctx.short === "appmute" || ctx.short === "outputmute" || ctx.short === "inputmute") {
+    const isMuteMode = COMBINED_VOL.includes(ctx.short) && ctx.settings && ctx.settings.direction === "mute";
+    if (isMuteMode) {
       setState(ctx.context, data.muted ? 1 : 0);
     }
   }
@@ -327,6 +364,21 @@ function updateDisplay(ctx, data) {
 
 // --- Refresh display for a context ---
 function refreshTitle(ctx) {
+  // For push-to-talk, resolve device and show current PTT state
+  if (ctx.short === "pushtotalk") {
+    const inputName = ctx.settings && ctx.settings.inputName;
+    if (!inputName) {
+      ctx.resolvedPTTId = null;
+      setPTTImage(ctx, false);
+      return;
+    }
+    pipewire.resolveSourceId(inputName, (id) => {
+      ctx.resolvedPTTId = id;
+      setPTTImage(ctx, ctx.pttActive || false);
+    });
+    return;
+  }
+
   // For app actions, resolve by stable application.name
   if (ctx.short.startsWith("app")) {
     const appName = ctx.settings && ctx.settings.appName;
@@ -518,6 +570,7 @@ function resolveTarget(short, ctx, settings) {
   if (short.startsWith("output")) return (ctx && ctx.resolvedOutputId) || (settings && settings.output);
   if (short.startsWith("input")) return (ctx && ctx.resolvedInputId) || (settings && settings.input);
   if (short === "switchoutput" || short === "switchinput") return ctx && ctx.resolvedSwitchId;
+  if (short === "pushtotalk") return (ctx && ctx.resolvedPTTId) || null;
   return null;
 }
 
@@ -550,28 +603,28 @@ function handleKeyDown(action, context, settings) {
   const isApp = short.startsWith("app");
 
   switch (short) {
-    case "volumeup":
-    case "micup":
-    case "appvolumeup":
-    case "outputvolumeup":
-    case "inputvolumeup":
-      if (isApp) {
-        forEachTarget(target, (id, done) => pipewire.nodeVolume(id, `+${step}%`, done), cb);
+    case "volume":
+    case "micvolume":
+    case "appvolume":
+    case "outputvolume":
+    case "inputvolume": {
+      if (settings && settings.direction === "mute") {
+        if (isApp) {
+          forEachTarget(target, (id, done) => pipewire.nodeMute(id, done), cb);
+        } else {
+          pipewire.nodeMute(target, cb);
+        }
       } else {
-        pipewire.nodeVolume(target, `+${step}%`, cb);
+        const dir = (settings && settings.direction === "down") ? "-" : "+";
+        const change = `${dir}${step}%`;
+        if (isApp) {
+          forEachTarget(target, (id, done) => pipewire.nodeVolume(id, change, done), cb);
+        } else {
+          pipewire.nodeVolume(target, change, cb);
+        }
       }
       break;
-    case "volumedown":
-    case "micdown":
-    case "appvolumedown":
-    case "outputvolumedown":
-    case "inputvolumedown":
-      if (isApp) {
-        forEachTarget(target, (id, done) => pipewire.nodeVolume(id, `-${step}%`, done), cb);
-      } else {
-        pipewire.nodeVolume(target, `-${step}%`, cb);
-      }
-      break;
+    }
     case "mutetoggle":
     case "micmute":
     case "appmute":
@@ -620,6 +673,25 @@ function handleDialPress(action, context, settings) {
   } else {
     pipewire.nodeMute(target, cb);
   }
+}
+
+// --- Push-to-talk press/release ---
+function handlePTTPress(context) {
+  const ctx = contexts.get(context);
+  if (!ctx) return;
+  ctx.pttActive = true;
+  const target = resolveTarget("pushtotalk", ctx, ctx.settings);
+  if (target) pipewire.nodeMuteSet(target, false, () => {});
+  setPTTImage(ctx, true);
+}
+
+function handlePTTRelease(context) {
+  const ctx = contexts.get(context);
+  if (!ctx) return;
+  ctx.pttActive = false;
+  const target = resolveTarget("pushtotalk", ctx, ctx.settings);
+  if (target) pipewire.nodeMuteSet(target, true, () => {});
+  setPTTImage(ctx, false);
 }
 
 // --- PipeWire monitor (pactl subscribe) ---
@@ -700,7 +772,20 @@ ws.on("message", (raw) => {
       break;
 
     case "keyDown": {
-      handleKeyDown(action, context, getSettings(context, payload));
+      const kdCtx = contexts.get(context);
+      if (kdCtx && kdCtx.short === "pushtotalk") {
+        handlePTTPress(context);
+      } else {
+        handleKeyDown(action, context, getSettings(context, payload));
+      }
+      break;
+    }
+
+    case "keyUp": {
+      const kuCtx = contexts.get(context);
+      if (kuCtx && kuCtx.short === "pushtotalk") {
+        handlePTTRelease(context);
+      }
       break;
     }
 
