@@ -45,7 +45,14 @@ function send(obj) {
   }
 }
 
+// Per-context caches to avoid redundant sends (and resulting disk writes)
+const lastTitleCache = new Map();
+const lastImageCache = new Map();
+const lastStateCache = new Map();
+
 function setTitle(context, title) {
+  if (lastTitleCache.get(context) === title) return;
+  lastTitleCache.set(context, title);
   send({
     event: "setTitle",
     context,
@@ -54,6 +61,8 @@ function setTitle(context, title) {
 }
 
 function setState(context, state) {
+  if (lastStateCache.get(context) === state) return;
+  lastStateCache.set(context, state);
   send({
     event: "setState",
     context,
@@ -273,6 +282,8 @@ function renderPTTSvg(active) {
 
 function setPTTImage(ctx, active) {
   const svg = renderPTTSvg(active);
+  if (lastImageCache.get(ctx.context) === svg) return;
+  lastImageCache.set(ctx.context, svg);
   const b64 = Buffer.from(svg).toString("base64");
   setTitle(ctx.context, "");
   send({
@@ -291,6 +302,8 @@ function setImage(context, title, muted, percent, options, controller) {
     const L = LAYOUTS[controller] || LAYOUTS.Keypad;
     svg = renderSVG(title, !!muted, pct, options, L);
   }
+  if (lastImageCache.get(context) === svg) return;
+  lastImageCache.set(context, svg);
   const b64 = Buffer.from(svg).toString("base64");
   if (controller === "Keypad") {
     const showName = options && options.showName !== undefined ? options.showName : true;
@@ -769,6 +782,9 @@ ws.on("message", (raw) => {
 
     case "willDisappear":
       contexts.delete(context);
+      lastImageCache.delete(context);
+      lastTitleCache.delete(context);
+      lastStateCache.delete(context);
       break;
 
     case "keyDown": {
