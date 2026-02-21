@@ -16,9 +16,23 @@
         </select>
       </div>
     </div>
+    <div class="sdpi-heading">Safety Timeout</div>
+    <div class="sdpi-item">
+      <div class="sdpi-item-label">Enable</div>
+      <div class="sdpi-item-value">
+        <input type="checkbox" id="pttTimeoutEnabled" />
+        <label for="pttTimeoutEnabled">Auto-mute if button release is missed</label>
+      </div>
+    </div>
+    <div class="sdpi-item">
+      <div class="sdpi-item-label">Auto-mute after</div>
+      <div class="sdpi-item-value">
+        <input type="number" id="pttTimeout" min="5" max="300" value="60" style="width:60px" /> seconds
+      </div>
+    </div>
     <div class="sdpi-info">
       Hold to unmute. Red = muted, green = live.<br/>
-      Mic will always be muted when you release the button.
+      Mic mutes on button release, or after the safety timeout if the release is missed.
     </div>
   </div>
 
@@ -38,7 +52,7 @@
           var payload = msg.payload || {};
           if (payload.event === "sourceList") populateSourceList(payload.sources || []);
         }
-        if (msg.event === "didReceiveSettings") selectCurrentInput();
+        if (msg.event === "didReceiveSettings") { selectCurrentInput(); loadPttTimeout(); }
       }
     );
 
@@ -76,12 +90,23 @@
       if (settings.inputName) select.value = settings.inputName;
     }
 
+    function loadPttTimeout() {
+      document.getElementById("pttTimeoutEnabled").checked = settings.pttTimeoutEnabled === true;
+      if (settings.pttTimeout) document.getElementById("pttTimeout").value = settings.pttTimeout;
+    }
+
     function saveSettings() {
       settings.inputName = document.getElementById("input-select").value || settings.inputName;
+      settings.pttTimeoutEnabled = document.getElementById("pttTimeoutEnabled").checked;
+      var timeout = parseInt(document.getElementById("pttTimeout").value, 10);
+      settings.pttTimeout = Math.min(300, Math.max(5, isNaN(timeout) ? 60 : timeout));
       sendSettings();
     }
 
+    loadPttTimeout();
     document.getElementById("input-select").addEventListener("change", saveSettings);
+    document.getElementById("pttTimeoutEnabled").addEventListener("change", saveSettings);
+    document.getElementById("pttTimeout").addEventListener("change", saveSettings);
   </script>
 </body>
 </html>

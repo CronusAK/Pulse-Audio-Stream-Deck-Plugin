@@ -722,7 +722,7 @@ function handleDialPress(action, context, settings) {
 }
 
 // --- Push-to-talk press/release ---
-const PTT_SAFETY_TIMEOUT_MS = 5000;
+const PTT_SAFETY_TIMEOUT_MS = 60000;
 
 function handlePTTPress(context) {
   const ctx = contexts.get(context);
@@ -740,10 +740,13 @@ function handlePTTPress(context) {
   setPTTImage(ctx, true);
 
   // Safety: if keyUp is lost (plugin crash, socket drop), auto-mute after timeout
-  ctx.pttSafetyTimeout = setTimeout(() => {
-    console.warn("PTT safety timeout: auto-muting mic");
-    handlePTTRelease(context);
-  }, PTT_SAFETY_TIMEOUT_MS);
+  if (ctx.settings && ctx.settings.pttTimeoutEnabled === true) {
+    const timeoutMs = ((ctx.settings && ctx.settings.pttTimeout) || PTT_SAFETY_TIMEOUT_MS / 1000) * 1000;
+    ctx.pttSafetyTimeout = setTimeout(() => {
+      console.warn("PTT safety timeout: auto-muting mic");
+      handlePTTRelease(context);
+    }, timeoutMs);
+  }
 }
 
 function handlePTTRelease(context) {
