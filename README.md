@@ -47,7 +47,7 @@ This installs dependencies and produces `builds/com.sfgrimes.pipewire-audio.stre
 | Input Mute | Toggle a specific input device's mute state |
 | Switch Output Device | Set a specific output device as the system default |
 | Switch Input Device | Set a specific input device as the system default |
-| Push-to-Talk | Hold to unmute mic, releases on button up; auto-mutes after 5s as a safety fallback |
+| Push-to-Talk | Hold to unmute mic, releases on button up; Configurable auto-mutes after X seconds as a safety fallback |
 
 All volume and mute actions support both keypad (button) and encoder (dial) controllers. Push-to-Talk is keypad only. The volume step size is configurable per action from the property inspector.
 
