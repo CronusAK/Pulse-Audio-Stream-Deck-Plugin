@@ -10,9 +10,11 @@ A Stream Deck plugin for controlling PipeWire audio on Linux via [OpenDeck](http
 - **Output Device Control** -- Select a specific output sink and control its volume/mute independently
 - **Input Device Control** -- Select a specific input source and control its volume/mute independently
 - **Device Switching** -- Assign a button to any output or input device; press to set it as the system default. Active device shows a green bar, inactive shows grey.
+- **Push-to-Talk** -- Hold to unmute your microphone; mic mutes automatically on release. Mic will auto-mute after 5 seconds as a safety fallback if the button release is missed.
 - **Configurable Volume Step** -- Per-action slider (1--20%) controls how much each button press or dial tick changes volume
 - **Encoder Support** -- Dial rotation for volume adjustment (step multiplied by ticks), press/touch to toggle mute or switch default device
 - **Real-time Feedback** -- Live volume bars and device names on button/encoder screens, updated automatically when PipeWire state changes
+- **Display Options** -- Per-action background color, toggleable device name, volume bar, and percentage overlay; text and icons include a black outline for readability on any background color
 
 ## Requirements
 
@@ -27,7 +29,7 @@ A Stream Deck plugin for controlling PipeWire audio on Linux via [OpenDeck](http
 ./build.sh
 ```
 
-This bumps the patch version, installs dependencies, and produces `builds/com.sfgrimes.pipewire-audio.streamDeckPlugin`, which can be installed through OpenDeck.
+This installs dependencies and produces `builds/com.sfgrimes.pipewire-audio.streamDeckPlugin`, which can be installed through OpenDeck.
 
 ## Actions
 
@@ -45,8 +47,9 @@ This bumps the patch version, installs dependencies, and produces `builds/com.sf
 | Input Mute | Toggle a specific input device's mute state |
 | Switch Output Device | Set a specific output device as the system default |
 | Switch Input Device | Set a specific input device as the system default |
+| Push-to-Talk | Hold to unmute mic, releases on button up; auto-mutes after 5s as a safety fallback |
 
-All actions support both keypad (button) and encoder (dial) controllers. The volume step size is configurable per action from the property inspector.
+All volume and mute actions support both keypad (button) and encoder (dial) controllers. Push-to-Talk is keypad only. The volume step size is configurable per action from the property inspector.
 
 ## Setting Up Virtual Sinks
 

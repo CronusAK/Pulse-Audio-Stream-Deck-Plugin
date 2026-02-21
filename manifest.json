@@ -14,7 +14,7 @@
     }
   ],
   "Software": {
-    "MinimumVersion": "6.0"
+    "MinimumVersion": "2.0"
   },
   "SDKVersion": 2,
   "Actions": [
