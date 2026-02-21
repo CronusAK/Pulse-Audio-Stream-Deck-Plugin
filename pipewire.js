@@ -1,7 +1,7 @@
 const { exec } = require("child_process");
 
 function run(cmd, callback) {
-  exec(cmd, (err, stdout) => {
+  exec(cmd, { timeout: 5000 }, (err, stdout) => {
     if (err) console.error(`pipewire cmd error: ${cmd}`, err.message);
     if (callback) callback(err, stdout);
   });
@@ -16,7 +16,7 @@ function toWpctlVol(change) {
 
 // Get volume and mute status for a target (sink/source/node id)
 function getVolume(target, callback) {
-  exec(`wpctl get-volume ${target}`, (err, stdout) => {
+  exec(`wpctl get-volume ${target}`, { timeout: 5000 }, (err, stdout) => {
     if (err) return callback(null);
 
     const volumeMatch = stdout.match(/Volume:\s([0-9.]+)/);
@@ -52,7 +52,7 @@ function nodeMuteSet(id, muted, callback) {
 
 // Shared helper: parse pw-dump once, extract app streams, sinks, and sources
 function parsePwDump(callback) {
-  exec("pw-dump", (err, stdout) => {
+  exec("pw-dump", { timeout: 10000 }, (err, stdout) => {
     if (err) return callback([], [], []);
 
     try {
@@ -146,7 +146,7 @@ function setDefault(id, callback) {
 
 // Inspect a node and extract multiple properties in one call
 function inspectNode(target, callback) {
-  exec(`wpctl inspect ${target}`, (err, stdout) => {
+  exec(`wpctl inspect ${target}`, { timeout: 5000 }, (err, stdout) => {
     if (err) return callback(null);
 
     const nodeName = stdout.match(/node\.name\s*=\s*"(.+?)"/);

@@ -155,23 +155,37 @@ const LAYOUTS = {
 };
 
 // --- Unified SVG rendering ---
+// Outline filter: dilates the element's alpha outward and fills black, then composites
+// original on top. Applied at the SVG root coordinate level so radius is always screen pixels,
+// regardless of any inner scale() transforms on icon groups.
+const SVG_OUTLINE_FILTER = `<defs>
+<filter id="outline" x="-15%" y="-15%" width="130%" height="130%">
+<feMorphology in="SourceAlpha" operator="dilate" radius="1.5" result="expanded"/>
+<feFlood flood-color="#000000" result="color"/>
+<feComposite in="color" in2="expanded" operator="in" result="outline"/>
+<feMerge><feMergeNode in="outline"/><feMergeNode in="SourceGraphic"/></feMerge>
+</filter>
+</defs>`;
+
+const TEXT_OUTLINE = `stroke="#000" stroke-width="2" paint-order="stroke fill"`;
+
 function buildNameText(title, yCenter, L) {
   if (title.length > L.nameWrapThreshold) {
     const mid = title.lastIndexOf(" ", Math.ceil(title.length / 2));
     if (mid > 0) {
       const l1 = title.substring(0, mid);
       const l2 = title.substring(mid + 1);
-      return `<text x="${L.cx}" y="${yCenter + L.nameWrapYOff1}" text-anchor="middle" fill="#fff" font-size="${L.nameWrapSize}" font-family="sans-serif" font-weight="bold" textLength="${L.barW}" lengthAdjust="spacingAndGlyphs">${l1}</text>
-<text x="${L.cx}" y="${yCenter + L.nameWrapYOff2}" text-anchor="middle" fill="#fff" font-size="${L.nameWrapSize}" font-family="sans-serif" font-weight="bold" textLength="${L.barW}" lengthAdjust="spacingAndGlyphs">${l2}</text>`;
+      return `<text x="${L.cx}" y="${yCenter + L.nameWrapYOff1}" text-anchor="middle" fill="#fff" ${TEXT_OUTLINE} font-size="${L.nameWrapSize}" font-family="sans-serif" font-weight="bold" textLength="${L.barW}" lengthAdjust="spacingAndGlyphs">${l1}</text>
+<text x="${L.cx}" y="${yCenter + L.nameWrapYOff2}" text-anchor="middle" fill="#fff" ${TEXT_OUTLINE} font-size="${L.nameWrapSize}" font-family="sans-serif" font-weight="bold" textLength="${L.barW}" lengthAdjust="spacingAndGlyphs">${l2}</text>`;
     }
   }
-  return `<text x="${L.cx}" y="${yCenter + L.nameSingleYOff}" text-anchor="middle" fill="#fff" font-size="${L.nameSingleSize}" font-family="sans-serif" font-weight="bold" textLength="${L.barW}" lengthAdjust="spacingAndGlyphs">${title}</text>`;
+  return `<text x="${L.cx}" y="${yCenter + L.nameSingleYOff}" text-anchor="middle" fill="#fff" ${TEXT_OUTLINE} font-size="${L.nameSingleSize}" font-family="sans-serif" font-weight="bold" textLength="${L.barW}" lengthAdjust="spacingAndGlyphs">${title}</text>`;
 }
 
 function buildPercentText(percent, yCenter, large, L) {
   const size = large ? L.pctLargeSize : L.pctSmallSize;
   const yOff = large ? L.pctLargeYOff : L.pctSmallYOff;
-  return `<text x="${L.cx}" y="${yCenter + yOff}" text-anchor="middle" fill="#fff" font-size="${size}" font-family="sans-serif" font-weight="bold">${percent}%</text>`;
+  return `<text x="${L.cx}" y="${yCenter + yOff}" text-anchor="middle" fill="#fff" ${TEXT_OUTLINE} font-size="${size}" font-family="sans-serif" font-weight="bold">${percent}%</text>`;
 }
 
 function renderSVG(title, muted, percent, options, L) {
@@ -182,11 +196,12 @@ function renderSVG(title, muted, percent, options, L) {
 
   const fillW = Math.round((percent / 100) * L.barW);
   const barColor = (options && options.barColor) || (muted ? "#666" : "#f7821b");
+  const bgColor = (options && options.bgColor) || "#000000";
 
   const bgIcon = (!showName && iconType && L.bgIcons[iconType]) ? L.bgIcons[iconType] : "";
 
   const muteIcon = muted
-    ? `<g transform="${L.muteTransform}"><path d="M3 9v6h4l5 5V4L7 9H3z" fill="#fff"/><line x1="2" y1="2" x2="22" y2="22" stroke="#e33" stroke-width="3" stroke-linecap="round"/></g>`
+    ? `<g filter="url(#outline)"><g transform="${L.muteTransform}"><path d="M3 9v6h4l5 5V4L7 9H3z" fill="#fff"/><line x1="2" y1="2" x2="22" y2="22" stroke="#e33" stroke-width="3" stroke-linecap="round"/></g></g>`
     : "";
 
   let textBlock = "";
@@ -199,12 +214,12 @@ function renderSVG(title, muted, percent, options, L) {
   }
 
   const barBlock = showBar
-    ? `<rect x="${L.barX}" y="${L.barY}" width="${L.barW}" height="10" rx="5" fill="#333"/>
-<rect x="${L.barX}" y="${L.barY}" width="${fillW}" height="10" rx="5" fill="${barColor}"/>`
+    ? `<g filter="url(#outline)"><rect x="${L.barX}" y="${L.barY}" width="${L.barW}" height="10" rx="5" fill="#333"/><rect x="${L.barX}" y="${L.barY}" width="${fillW}" height="10" rx="5" fill="${barColor}"/></g>`
     : "";
 
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${L.w}" height="${L.h}">
-<rect width="${L.w}" height="${L.h}" fill="#000"/>
+${SVG_OUTLINE_FILTER}
+<rect width="${L.w}" height="${L.h}" fill="${bgColor}"/>
 ${bgIcon}
 ${textBlock}
 ${muteIcon}
@@ -217,6 +232,7 @@ function renderKeypadSVG(muted, percent, options) {
   const barX = 12, barW = 120, barH = 6, barY = 110;
   const fillW = Math.round((percent / 100) * barW);
   const barColor = muted ? "#666" : "#f7821b";
+  const bgColor = (options && options.bgColor) || "#000000";
   const hint = options && options.actionHint;
   const showBar = options && options.showBar !== undefined ? options.showBar : true;
   const showPercent = options && options.showPercent !== undefined ? options.showPercent : false;
@@ -224,41 +240,43 @@ function renderKeypadSVG(muted, percent, options) {
   // Action-specific center icon
   let icon = "";
   if (hint === "up") {
-    icon = `<polyline points="40,82 72,44 104,82" fill="none" stroke="#4caf50" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>`;
+    icon = `<g filter="url(#outline)"><polyline points="40,82 72,44 104,82" fill="none" stroke="#4caf50" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></g>`;
   } else if (hint === "down") {
-    icon = `<polyline points="40,44 72,82 104,44" fill="none" stroke="#f44336" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>`;
+    icon = `<g filter="url(#outline)"><polyline points="40,44 72,82 104,44" fill="none" stroke="#f44336" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></g>`;
   } else if (hint === "mute") {
     const iconType = options && options.iconType;
+    let muteShape = "";
     if (iconType === "microphone" || iconType === "input") {
-      icon = `<g transform="translate(36,36) scale(3.0)" opacity="0.85">
+      muteShape = `<g transform="translate(36,36) scale(3.0)" opacity="0.85">
 <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z" fill="#fff"/>
 <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z" fill="#fff"/>
 </g>`;
     } else {
-      icon = `<g transform="translate(30,38) scale(3.5)" opacity="0.85">
+      muteShape = `<g transform="translate(30,38) scale(3.5)" opacity="0.85">
 <path d="M3 9v6h4l5 5V4L7 9H3z" fill="#fff"/>
 <path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z" fill="#fff"/>
 <path d="M19 12c0 2.87-1.65 5.36-4 6.58v2.16c3.44-1.35 6-4.73 6-8.74s-2.56-7.39-6-8.74v2.16c2.35 1.22 4 3.71 4 6.58z" fill="#fff"/>
 </g>`;
     }
-    if (muted) {
-      icon += `<line x1="32" y1="32" x2="112" y2="100" stroke="#e33" stroke-width="5" stroke-linecap="round"/>`;
-    }
+    const slash = muted
+      ? `<line x1="32" y1="32" x2="112" y2="100" stroke="#e33" stroke-width="5" stroke-linecap="round"/>`
+      : "";
+    icon = `<g filter="url(#outline)">${muteShape}${slash}</g>`;
   }
 
   // Volume bar (conditional)
   const bar = showBar
-    ? `<rect x="${barX}" y="${barY}" width="${barW}" height="${barH}" rx="3" fill="#333"/>
-<rect x="${barX}" y="${barY}" width="${fillW}" height="${barH}" rx="3" fill="${barColor}"/>`
+    ? `<g filter="url(#outline)"><rect x="${barX}" y="${barY}" width="${barW}" height="${barH}" rx="3" fill="#333"/><rect x="${barX}" y="${barY}" width="${fillW}" height="${barH}" rx="3" fill="${barColor}"/></g>`
     : "";
 
   // Percentage below bar (conditional)
   const pctText = showPercent
-    ? `<text x="${CX}" y="132" text-anchor="middle" fill="#fff" font-size="16" font-family="sans-serif" font-weight="bold">${percent}%</text>`
+    ? `<text x="${CX}" y="132" text-anchor="middle" fill="#fff" ${TEXT_OUTLINE} font-size="16" font-family="sans-serif" font-weight="bold">${percent}%</text>`
     : "";
 
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}">
-<rect width="${W}" height="${H}" fill="#000"/>
+${SVG_OUTLINE_FILTER}
+<rect width="${W}" height="${H}" fill="${bgColor}"/>
 ${icon}
 ${bar}
 ${pctText}
@@ -333,7 +351,8 @@ function displayOpts(ctx) {
   const showName = ctx.settings && ctx.settings.showName !== undefined ? ctx.settings.showName : true;
   const showPercent = ctx.settings && ctx.settings.showPercent !== undefined ? ctx.settings.showPercent : false;
   const showBar = ctx.settings && ctx.settings.showBar !== undefined ? ctx.settings.showBar : true;
-  const opts = { showName, showPercent, showBar, iconType: ctx.iconType };
+  const bgColor = (ctx.settings && ctx.settings.bgColor) || "#000000";
+  const opts = { showName, showPercent, showBar, iconType: ctx.iconType, bgColor };
   if (ctx.short === "switchoutput" || ctx.short === "switchinput") {
     opts.barColor = ctx.isActive ? "#4caf50" : "#666";
   }
@@ -435,27 +454,41 @@ function refreshTitle(ctx) {
   // For input device actions, resolve by stable node.name
   if (ctx.short.startsWith("input")) {
     const inputName = ctx.settings && ctx.settings.inputName;
+    const legacyId = ctx.settings && ctx.settings.input;
 
-    if (!inputName) {
+    if (!inputName && !legacyId) {
       ctx.nodeName = "No Device";
       ctx.resolvedInputId = null;
       updateDisplay(ctx, null);
       return;
     }
 
-    pipewire.resolveSourceId(inputName, (id) => {
-      if (!id) {
-        ctx.nodeName = inputName;
-        ctx.resolvedInputId = null;
-        updateDisplay(ctx, null);
-        return;
-      }
-      ctx.resolvedInputId = id;
-      pipewire.getNodeName(id, (name) => {
-        ctx.nodeName = name || inputName;
-        pipewire.getVolume(id, (data) => updateDisplay(ctx, data));
+    if (inputName) {
+      pipewire.resolveSourceId(inputName, (id) => {
+        if (!id) {
+          ctx.nodeName = inputName;
+          ctx.resolvedInputId = null;
+          updateDisplay(ctx, null);
+          return;
+        }
+        ctx.resolvedInputId = id;
+        pipewire.getNodeName(id, (name) => {
+          ctx.nodeName = name || inputName;
+          pipewire.getVolume(id, (data) => updateDisplay(ctx, data));
+        });
       });
-    });
+    } else {
+      // Legacy: use numeric ID directly, auto-migrate to node.name
+      ctx.resolvedInputId = legacyId;
+      pipewire.inspectNode(legacyId, (info) => {
+        if (info && info.stableName) {
+          ctx.settings.inputName = info.stableName;
+          send({ event: "setSettings", context: ctx.context, payload: ctx.settings });
+        }
+        ctx.nodeName = (info && info.displayName) || `ID ${legacyId}`;
+        pipewire.getVolume(legacyId, (data) => updateDisplay(ctx, data));
+      });
+    }
     return;
   }
 
@@ -689,18 +722,39 @@ function handleDialPress(action, context, settings) {
 }
 
 // --- Push-to-talk press/release ---
+const PTT_SAFETY_TIMEOUT_MS = 5000;
+
 function handlePTTPress(context) {
   const ctx = contexts.get(context);
   if (!ctx) return;
+
+  // Clear any lingering safety timeout from a previous press
+  if (ctx.pttSafetyTimeout) {
+    clearTimeout(ctx.pttSafetyTimeout);
+    ctx.pttSafetyTimeout = null;
+  }
+
   ctx.pttActive = true;
   const target = resolveTarget("pushtotalk", ctx, ctx.settings);
   if (target) pipewire.nodeMuteSet(target, false, () => {});
   setPTTImage(ctx, true);
+
+  // Safety: if keyUp is lost (plugin crash, socket drop), auto-mute after timeout
+  ctx.pttSafetyTimeout = setTimeout(() => {
+    console.warn("PTT safety timeout: auto-muting mic");
+    handlePTTRelease(context);
+  }, PTT_SAFETY_TIMEOUT_MS);
 }
 
 function handlePTTRelease(context) {
   const ctx = contexts.get(context);
   if (!ctx) return;
+
+  if (ctx.pttSafetyTimeout) {
+    clearTimeout(ctx.pttSafetyTimeout);
+    ctx.pttSafetyTimeout = null;
+  }
+
   ctx.pttActive = false;
   const target = resolveTarget("pushtotalk", ctx, ctx.settings);
   if (target) pipewire.nodeMuteSet(target, true, () => {});
@@ -710,11 +764,18 @@ function handlePTTRelease(context) {
 // --- PipeWire monitor (pactl subscribe) ---
 let monitor = null;
 let debounceTimer = null;
+let monitorRetryCount = 0;
+
+function getMonitorRetryDelay() {
+  // Exponential backoff: 2s, 4s, 8s, 16s, 32s, capped at 60s
+  return Math.min(2000 * Math.pow(2, monitorRetryCount), 60000);
+}
 
 function startMonitor() {
   monitor = spawn("pactl", ["subscribe"], { stdio: ["ignore", "pipe", "ignore"] });
 
   monitor.stdout.on("data", () => {
+    monitorRetryCount = 0; // Reset backoff on successful data
     // Debounce: coalesce rapid events into a single refresh
     if (debounceTimer) clearTimeout(debounceTimer);
     debounceTimer = setTimeout(() => {
@@ -728,10 +789,11 @@ function startMonitor() {
   });
 
   monitor.on("close", (code) => {
-    console.log(`pactl subscribe exited with code ${code}`);
-    // Restart after a delay if still running
     if (!shuttingDown) {
-      setTimeout(startMonitor, 2000);
+      const delay = getMonitorRetryDelay();
+      console.log(`pactl subscribe exited (code ${code}), retrying in ${delay}ms`);
+      monitorRetryCount++;
+      setTimeout(startMonitor, delay);
     }
   });
 }
@@ -775,7 +837,13 @@ ws.on("message", (raw) => {
       const settings = (payload && payload.settings) || {};
       const controller = (payload && payload.controller) || "Keypad";
       const { short, iconType } = actionMeta(action);
-      contexts.set(context, { action, short, iconType, context, settings, controller });
+      // Pre-populate nodeName from settings so display shows device name
+      // immediately rather than "..." during async PipeWire resolution
+      let nodeName = null;
+      if (short.startsWith("app")) nodeName = settings.appName || null;
+      else if (short.startsWith("output") || short === "switchoutput") nodeName = settings.outputName || null;
+      else if (short.startsWith("input") || short === "switchinput" || short === "pushtotalk") nodeName = settings.inputName || null;
+      contexts.set(context, { action, short, iconType, context, settings, controller, nodeName });
       refreshTitle(contexts.get(context));
       break;
     }

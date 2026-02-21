@@ -46,6 +46,12 @@
         <label for="showPercent">Show percentage</label>
       </div>
     </div>
+    <div class="sdpi-item">
+      <div class="sdpi-item-label">Background</div>
+      <div class="sdpi-item-value">
+        <input type="color" id="bgColor" value="#000000" />
+      </div>
+    </div>
 
     <div class="sdpi-heading">Button Action</div>
     <div class="sdpi-item">
@@ -127,6 +133,7 @@
       settings.inputName = document.getElementById("input-select").value || settings.inputName;
       settings.direction = document.getElementById("direction").value;
       saveDisplaySettings();
+      saveBgColor();
       saveVolumeStep();
       sendSettings();
     }
@@ -144,6 +151,7 @@
     document.getElementById("showBar").addEventListener("change", saveSettings);
     document.getElementById("showPercent").addEventListener("change", saveSettings);
     document.getElementById("volumeStep").addEventListener("change", saveSettings);
+    document.getElementById("bgColor").addEventListener("change", saveSettings);
   </script>
 </body>
 </html>

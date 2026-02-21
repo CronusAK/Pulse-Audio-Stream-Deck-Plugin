@@ -21,6 +21,7 @@ function initPI(onReady, onMessage) {
     }
 
     loadDisplaySettings();
+    loadBgColor();
     loadVolumeStep();
 
     websocket = new WebSocket("ws://localhost:" + inPort);
@@ -44,6 +45,7 @@ function initPI(onReady, onMessage) {
       if (msg.event === "didReceiveSettings") {
         settings = (msg.payload && msg.payload.settings) || {};
         loadDisplaySettings();
+        loadBgColor();
         loadVolumeStep();
       }
 
@@ -69,6 +71,16 @@ function saveDisplaySettings() {
   settings.showPercent = document.getElementById("showPercent").checked;
   var customNameEl = document.getElementById("customName");
   if (customNameEl) settings.customName = customNameEl.value;
+}
+
+function loadBgColor() {
+  var el = document.getElementById("bgColor");
+  if (el) el.value = settings.bgColor || "#000000";
+}
+
+function saveBgColor() {
+  var el = document.getElementById("bgColor");
+  if (el) settings.bgColor = el.value;
 }
 
 function loadVolumeStep() {
