@@ -306,8 +306,12 @@ function setImage(context, title, muted, percent, options, controller) {
   lastImageCache.set(context, svg);
   const b64 = Buffer.from(svg).toString("base64");
   if (controller === "Keypad") {
-    const showName = options && options.showName !== undefined ? options.showName : true;
-    setTitle(context, showName ? title : "");
+    if (options && options.actionHint) {
+      const showName = options && options.showName !== undefined ? options.showName : true;
+      setTitle(context, showName ? title : "");
+    } else {
+      setTitle(context, "");
+    }
   }
   send({
     event: "setImage",
