@@ -2,6 +2,15 @@
 
 A Stream Deck plugin for controlling PipeWire audio on Linux via [OpenDeck](https://github.com/ninjadev64/OpenDeck).
 
+
+## Fork Changes
+- Fix Stroke for Ajazz Knobs
+- Fix Button Images being resetted if action is added to/removed from OpenDeck
+- Fix Volume Control not working if App is restarted by getting fresh Audio-Stream ID before each action
+- Fix Images not Updating after reinstalling/updating PipeWire Audio Control for OpenDeck
+- Fix inspector not showing fresh app/sink/source list
+- Show if app/sink/source is not available with a yellow strike
+
 ## Features
 
 - **Master Volume** - Increase, decrease, and mute system audio
