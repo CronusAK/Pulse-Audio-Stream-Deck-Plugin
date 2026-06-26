@@ -49,6 +49,7 @@ function send(obj) {
 const lastTitleCache = new Map();
 const lastImageCache = new Map();
 const lastStateCache = new Map();
+const lastFeedbackCache = new Map();
 
 function setTitle(context, title) {
   if (lastTitleCache.get(context) === title) return;
@@ -77,6 +78,22 @@ function sendToPropertyInspector(context, payload) {
     payload,
   });
 }
+
+function sendFeedback(context, payload) {
+  const key = JSON.stringify(payload);
+  if (lastFeedbackCache.get(context) === key) return;
+  lastFeedbackCache.set(context, key);
+  send({ event: "setFeedback", context, payload });
+}
+
+// --- 48×48 SVG icons for the $B1 encoder layout icon slot ---
+const ENCODER_ICONS = {
+  speaker: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="48" height="48"><path d="M3 9v6h4l5 5V4L7 9H3z" fill="#fff"/><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z" fill="#fff"/><path d="M19 12c0 2.87-1.65 5.36-4 6.58v2.16c3.44-1.35 6-4.73 6-8.74s-2.56-7.39-6-8.74v2.16c2.35 1.22 4 3.71 4 6.58z" fill="#fff"/></svg>`,
+  microphone: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="48" height="48"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z" fill="#fff"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z" fill="#fff"/></svg>`,
+  app: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="48" height="48"><path d="M4 8h4V4H4v4zm6 12h4v-4h-4v4zm-6 0h4v-4H4v4zm0-6h4v-4H4v4zm6 0h4v-4h-4v4zm6-10v4h4V4h-4zm-6 4h4V4h-4v4zm6 6h4v-4h-4v4zm0 6h4v-4h-4v4z" fill="#fff"/></svg>`,
+  output: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="48" height="48"><path d="M6 1h12a2 2 0 0 1 2 2v18a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2z" fill="none" stroke="#fff" stroke-width="1.5"/><circle cx="12" cy="15" r="5" fill="none" stroke="#fff" stroke-width="1.5"/><circle cx="12" cy="15" r="2" fill="#fff"/><circle cx="12" cy="5" r="1.5" fill="#fff"/></svg>`,
+  input: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="48" height="48"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z" fill="#fff"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z" fill="#fff"/></svg>`,
+};
 
 // --- SVG layout presets ---
 const LAYOUTS = {
@@ -181,7 +198,7 @@ function renderSVG(title, muted, percent, options, L) {
   const iconType = options && options.iconType || null;
 
   const fillW = Math.round((percent / 100) * L.barW);
-  const barColor = (options && options.barColor) || (muted ? "#666" : "#f7821b");
+  const barColor = (options && options.barColor) || (muted ? "#666" : "#fff");
 
   const bgIcon = (!showName && iconType && L.bgIcons[iconType]) ? L.bgIcons[iconType] : "";
 
@@ -216,7 +233,7 @@ function renderKeypadSVG(muted, percent, options) {
   const W = 144, H = 144, CX = 72;
   const barX = 12, barW = 120, barH = 6, barY = 110;
   const fillW = Math.round((percent / 100) * barW);
-  const barColor = muted ? "#666" : "#f7821b";
+  const barColor = muted ? "#666" : "#fff";
   const hint = options && options.actionHint;
   const showBar = options && options.showBar !== undefined ? options.showBar : true;
   const showPercent = options && options.showPercent !== undefined ? options.showPercent : false;
@@ -365,6 +382,15 @@ function updateDisplay(ctx, data) {
     const pct = ctx.isActive ? 100 : 0;
     setImage(ctx.context, title, false, pct, opts, ctx.controller);
     setState(ctx.context, ctx.isActive ? 0 : 1);
+    if (ctx.controller === "Encoder") {
+      const fb = {
+        title: { value: title, font: { size: 19, weight: 600 } },
+        value: ctx.isActive ? "Active" : "Inactive",
+        indicator: { value: pct, subtype: 4, bar_bg_c: "#333", bar_fill_c: ctx.isActive ? "#4caf50" : "#666" },
+      };
+      if (ENCODER_ICONS[ctx.iconType]) fb.icon = ENCODER_ICONS[ctx.iconType];
+      sendFeedback(ctx.context, fb);
+    }
     return;
   }
 
@@ -376,6 +402,18 @@ function updateDisplay(ctx, data) {
     if (isMuteMode) {
       setState(ctx.context, data.muted ? 1 : 0);
     }
+  }
+
+  if (ctx.controller === "Encoder") {
+    const muted = data ? data.muted : false;
+    const pct = data ? data.percent : 0;
+    const fb = {
+      title: { value: title, font: { size: 19, weight: 600 } },
+      value: muted ? "MUTED" : `${pct}%`,
+      indicator: { value: pct, subtype: 4, bar_bg_c: "#333", bar_fill_c: muted ? "#666" : "#fff" },
+    };
+    if (ENCODER_ICONS[ctx.iconType]) fb.icon = ENCODER_ICONS[ctx.iconType];
+    sendFeedback(ctx.context, fb);
   }
 }
 
@@ -760,6 +798,10 @@ function handlePTTPress(context) {
   const inputName = ctx.settings && ctx.settings.inputName;
   syncPTTState(inputName, true);
   if (!inputName) return;
+  if (ctx.resolvedPTTId) {
+    pipewire.nodeMuteSet(ctx.resolvedPTTId, false, () => {});
+    return;
+  }
   pipewire.resolveSourceId(inputName, (id) => {
     ctx.resolvedPTTId = id;
     if (id) pipewire.nodeMuteSet(id, false, () => {});
@@ -772,6 +814,10 @@ function handlePTTRelease(context) {
   const inputName = ctx.settings && ctx.settings.inputName;
   syncPTTState(inputName, false);
   if (!inputName) return;
+  if (ctx.resolvedPTTId) {
+    pipewire.nodeMuteSet(ctx.resolvedPTTId, true, () => {});
+    return;
+  }
   pipewire.resolveSourceId(inputName, (id) => {
     ctx.resolvedPTTId = id;
     if (id) pipewire.nodeMuteSet(id, true, () => {});
@@ -868,6 +914,7 @@ ws.on("message", (raw) => {
       lastImageCache.delete(context);
       lastTitleCache.delete(context);
       lastStateCache.delete(context);
+      lastFeedbackCache.delete(context);
       break;
 
     case "keyDown": {
