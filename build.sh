@@ -7,7 +7,7 @@ STAGE_DIR="${PLUGIN_NAME}.sdPlugin"
 cd "$(dirname "$0")"
 
 VERSION=$(node -e "process.stdout.write(require('./manifest.json').Version)")
-OUTPUT="builds/${PLUGIN_NAME}-${VERSION}.streamDeckPlugin"
+OUTPUT="builds/${PLUGIN_NAME}-${VERSION}.zip"
 echo "Version: $VERSION"
 
 echo "Installing dependencies..."
