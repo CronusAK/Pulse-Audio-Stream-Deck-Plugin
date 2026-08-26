@@ -4,12 +4,15 @@ A Stream Deck plugin for controlling PipeWire audio on Linux via [OpenDeck](http
 
 
 ## Fork Changes
+### v1.2.0
 - Fix Stroke for Ajazz Knobs
 - Fix Button Images being resetted if action is added to/removed from OpenDeck
 - Fix Volume Control not working if App is restarted by getting fresh Audio-Stream ID before each action
 - Fix Images not Updating after reinstalling/updating PipeWire Audio Control for OpenDeck
 - Fix inspector not showing fresh app/sink/source list
 - Show if app/sink/source is not available with a yellow strike
+### v1.2.1
+- Fix encoder/dial screen rendering on OpenDeck: use a custom full-canvas layout (`encoderLayout.json`) so the volume display fills the entire dial instead of being squeezed into a small icon slot next to a static, unchanged bar (OpenDeck issue #371)
 
 ## Features
 

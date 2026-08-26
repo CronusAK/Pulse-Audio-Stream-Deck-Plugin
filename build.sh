@@ -21,7 +21,7 @@ mkdir "$STAGE_DIR"
 
 # Copy only plugin files into it
 cp -r icons node_modules propertyInspector "$STAGE_DIR/"
-cp index.js pipewire.js manifest.json package.json package-lock.json "$STAGE_DIR/"
+cp index.js pipewire.js manifest.json package.json package-lock.json encoderLayout.json "$STAGE_DIR/"
 
 # Build the zip with the .sdPlugin directory as the top-level entry
 rm -f "$OUTPUT"

@@ -2,7 +2,7 @@
   "Name": "PipeWire Audio Control",
   "Description": "Native PipeWire audio control for Linux — master volume, mic, and per-app control.",
   "Author": "sfgrimes",
-  "Version": "1.2.0",
+  "Version": "1.2.1",
   "Icon": "icons/plugin",
   "Category": "Audio",
   "CategoryIcon": "icons/plugin",
@@ -28,7 +28,7 @@
         "Encoder"
       ],
       "Encoder": {
-        "layout": "$B1",
+        "layout": "encoderLayout.json",
         "TriggerDescription": {
           "Rotate": "Adjust volume",
           "Push": "Toggle mute",
@@ -59,7 +59,7 @@
         "Encoder"
       ],
       "Encoder": {
-        "layout": "$B1",
+        "layout": "encoderLayout.json",
         "TriggerDescription": {
           "Rotate": "Adjust mic volume",
           "Push": "Toggle mic mute",
@@ -90,7 +90,7 @@
         "Encoder"
       ],
       "Encoder": {
-        "layout": "$B1",
+        "layout": "encoderLayout.json",
         "TriggerDescription": {
           "Rotate": "Adjust app volume",
           "Push": "Toggle app mute",
@@ -121,7 +121,7 @@
         "Encoder"
       ],
       "Encoder": {
-        "layout": "$B1",
+        "layout": "encoderLayout.json",
         "TriggerDescription": {
           "Rotate": "Adjust output volume",
           "Push": "Toggle output mute",
@@ -152,7 +152,7 @@
         "Encoder"
       ],
       "Encoder": {
-        "layout": "$B1",
+        "layout": "encoderLayout.json",
         "TriggerDescription": {
           "Rotate": "Adjust input volume",
           "Push": "Toggle input mute",
@@ -205,7 +205,7 @@
         "Encoder"
       ],
       "Encoder": {
-        "layout": "$B1",
+        "layout": "encoderLayout.json",
         "TriggerDescription": {
           "Rotate": "—",
           "Push": "Set as default",
@@ -236,7 +236,7 @@
         "Encoder"
       ],
       "Encoder": {
-        "layout": "$B1",
+        "layout": "encoderLayout.json",
         "TriggerDescription": {
           "Rotate": "—",
           "Push": "Set as default",

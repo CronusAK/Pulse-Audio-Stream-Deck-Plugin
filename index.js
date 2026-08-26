@@ -85,11 +85,11 @@ const LAYOUTS = {
     barX: 10, barW: 180, barY: 80,
     nameWrapThreshold: 10,
     nameSingleSize: 50, nameSingleYOff: 6,
-    nameWrapSize: 30, nameWrapYOff1: -14, nameWrapYOff2: 18,
+    nameWrapSize: 30, nameWrapYOff1: -8, nameWrapYOff2: 16,
     pctLargeSize: 56, pctLargeYOff: 8,
     pctSmallSize: 30, pctSmallYOff: 6,
-    bothNameY: 28, bothPctY: 56,
-    singleY: 38,
+    bothNameY: 32, bothPctY: 70,
+    singleY: 40,
     muteTransform: "translate(170,4) scale(0.6)",
     bgIcons: {
       speaker: `<g transform="translate(62,5) scale(3.2)" opacity="0.15">
@@ -187,11 +187,11 @@ function renderSVG(title, muted, percent, options, L) {
   const bgIcon = (!showName && iconType && L.bgIcons[iconType]) ? L.bgIcons[iconType] : "";
 
   const muteIcon = muted
-    ? `<line x1="10" y1="10" x2="${L.w - 10}" y2="${L.h - 10}" stroke="#e33" stroke-width="4" stroke-linecap="round"/>`
+    ? `<line x1="10" y1="4" x2="${L.w - 10}" y2="${L.h - 10}" stroke="#e33" stroke-width="4" stroke-linecap="round"/>`
     : "";
 
   const warningIcon = showWarning
-    ? `<line x1="10" y1="10" x2="${L.w - 10}" y2="${L.h - 10}" stroke="#ffeb3b" stroke-width="5" stroke-linecap="round"/>`
+    ? `<line x1="10" y1="4" x2="${L.w - 10}" y2="${L.h - 10}" stroke="#ffeb3b" stroke-width="5" stroke-linecap="round"/>`
     : "";
 
   let textBlock = "";
@@ -317,6 +317,7 @@ function setImage(context, title, muted, percent, options, controller) {
   if (lastImageCache.get(context) === svg) return;
   lastImageCache.set(context, svg);
   const b64 = Buffer.from(svg).toString("base64");
+  const image = `data:image/svg+xml;base64,${b64}`;
   if (controller === "Keypad") {
     if (options && options.actionHint) {
       const showName = options && options.showName !== undefined ? options.showName : true;
@@ -325,11 +326,28 @@ function setImage(context, title, muted, percent, options, controller) {
       setTitle(context, "");
     }
   }
-  send({
-    event: "setImage",
-    context,
-    payload: { image: `data:image/svg+xml;base64,${b64}`, target: 0 },
-  });
+  // Encoders use a custom full-canvas layout: the device honors the layout's
+  // `icon` item via setFeedback, while OpenDeck's on-screen preview is driven
+  // by setImage. Send both so the hardware renders full-screen and the preview
+  // still shows the dial image.
+  if (controller === "Encoder") {
+    send({
+      event: "setFeedback",
+      context,
+      payload: { icon: image },
+    });
+    send({
+      event: "setImage",
+      context,
+      payload: { image, target: 0 },
+    });
+  } else {
+    send({
+      event: "setImage",
+      context,
+      payload: { image, target: 0 },
+    });
+  }
 }
 
 // --- Display helpers ---
